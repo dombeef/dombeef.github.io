@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0" name="viewport">
+		<link rel="stylesheet" href="css/slate.css">
+		<style>
+			.title {
+				padding: 15px 10px;
+				text-transform: uppercase;
+				font-family: 'PT Sans', sans-serif;
+				font-size: 1.2em;
+				font-weight: 500;
+				color: #888888;
+				text-align: center;
+			}
+		</style>
+
+		<title>Dot Matrix Watchface</title>
+	</head>
+	<body>
+		<h1 class='title'>Dot Matrix Watchface</h1>
+		<form id="main-form">
+
+			<div class="item-container">
+				<div class="item-container-header">Weather</div>
+				<div class="item-container-content">
+					<label class="item">
+						Enable weather
+						<input type="checkbox" class="item-toggle" name="toggle-1" checked id="enable_weather_select">
+					</label>
+				</div>
+                <div class="item-container-content">
+					<label class="item">
+						Use Celcius (If unchecked, fahrenheit is used)
+						<input type="checkbox" class="item-toggle" name="toggle-2" checked id="enable_celcius_select">
+					</label>
+				</div>
+			</div>
+
+			<div class="item-container">
+				<div class="item-container-header">Colors</div>
+				<div class="item-container-content">
+					<label class="item">
+						Background
+						<input type="text" class="item-color item-color-sunny" name="color-1" id="color_background_select">
+					</label>
+
+
+				</div>
+			</div>
+
+			<div class="item-container">
+				<div class="item-container-header">Functionality</div>
+				<div class="item-container-content">
+					<label class="item">
+						Vibrate on Bluetooth disconnection
+						<input type="checkbox" class="item-toggle" name="toggle-2" checked id="vibe_bt_select">
+					</label>
+				</div>
+			</div>
+
+			<div class="item-container">
+				<div class="button-container">
+					<input type="button" class="item-button" id="save_button" value="SEND">
+				</div>
+			</div>
+
+			<div class="item-container">
+				<div class="item-container-header">Reset settings</div>
+				<div class="button-container">
+					<input type="button" class="item-button" id="reset-colors_button" value="RESET SETTINGS">
+				</div>
+			</div>
+		</form>
+
+
+		<script type="text/javascript" src="js/slate.js"></script>
+		<script>
+			function getQueryVariable(variable)
+			{
+				var query = window.location.search.substring(1);
+				var vars = query.split("&");
+				for (var i=0;i<vars.length;i++) {
+					var pair = vars[i].split("=");
+					if(pair[0] == variable){return pair[1];}
+				}
+
+				return(false);
+			}
+
+			function fillOptions() {
+				if (getQueryVariable("first_start") === "jup") {
+
+          var enableWeatherSelect = document.getElementById("enable_weather_select");
+          var enableCelciusSelect = document.getElementById("enable_celcius_select");
+					var colorBackgroundSelect = document.getElementById("color_background_select");
+					var vibeBtSelect = document.getElementById("vibe_bt_select");
+
+
+					enableWeatherSelect.checked = "true";
+          enableCelciusSelect.checked = "true";
+					colorBackgroundSelect.value = "0x0000AA";
+					vibeBtSelect.checked = "true";
+				}
+				else {
+					var enableWeatherSelect = document.getElementById("enable_weather_select");
+          var enableCelciusSelect = document.getElementById("enable_celcius_select");
+					var colorBackgroundSelect = document.getElementById("color_background_select");
+					var vibeBtSelect = document.getElementById("vibe_bt_select");
+
+				    enableWeatherSelect.checked = (getQueryVariable("enable_weather_select") === 'true');
+            enableCelciusSelect.checked = (getQueryVariable("enable_celcius_select") === 'true');
+					  colorBackgroundSelect.value = getQueryVariable("color_background_select");
+					  vibeBtSelect.checked = (getQueryVariable("vibe_bt_select") === 'true');
+				}
+			}
+
+			function saveOptions() {
+
+        var enableWeatherSelect = document.getElementById("enable_weather_select");
+        var enableCelciusSelect = document.getElementById("enable_celcius_select");
+				var colorBackgroundSelect = document.getElementById("color_background_select");
+				var vibeBtSelect = document.getElementById("vibe_bt_select");
+
+				var options = {
+          "KEY_ENABLE_WEATHER": enableWeatherSelect.checked,
+          "KEY_ENABLE_CELCIUS": enableCelciusSelect.checked,
+					"KEY_COLOR_BG": colorBackgroundSelect.value,
+					"KEY_VIBE_BT": vibeBtSelect.checked,
+				}
+
+				return options;
+			}
+
+			var submitButton = document.getElementById("save_button");
+			submitButton.addEventListener("click",
+				function() {
+					console.log("Submit");
+
+					var options = saveOptions();
+					var location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(options));
+
+					document.location = location;
+				},
+				false
+			);
+
+			var resetColorsButton = document.getElementById("reset-colors_button");
+			resetColorsButton.addEventListener("click",
+				function() {
+					console.log("Reset Settings");
+
+					var colorBackgroundSelect = document.getElementById("color_background_select");
+
+
+					colorBackgroundSelect.value = "0x0000AA";
+
+
+					submitButton.click();
+				},
+				false
+			);
+
+			fillOptions();
+		</script>
+	</body>
+</html>

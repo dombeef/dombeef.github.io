@@ -1,0 +1,42 @@
+/*!
+ * Start Bootstrap - Portfolio Item (https://startbootstrap.com/template-overviews/portfolio-item)
+ * Copyright 2013-2017 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-portfolio-item/blob/master/LICENSE)
+ */
+
+body {
+  padding-top: 54px;
+}
+
+@media (min-width: 992px) {
+  body {
+    padding-top: 56px;
+  }
+}
+
+.pagination {
+  margin-bottom: 15px;
+}
+
+nav-link {
+  font-family: 'Ubuntu', regular;
+
+}
+h3 {
+  font-family: 'Comfortaa', regular;
+}
+h1 {
+  font-family: 'Comfortaa', regular;
+}
+p {
+  font-family: 'Roboto', regular;
+}
+ul {
+  font-family: 'Roboto', regular;
+}
+/*
+ * Google Fonts
+ */
+font-family: 'Comfortaa', cursive;
+font-family: 'Roboto', sans-serif;
+font-family: 'Ubuntu', sans-serif;
