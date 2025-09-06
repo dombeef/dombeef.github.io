@@ -334,7 +334,9 @@
             <input id="outH" type="number" min="1" step="1" value="480" />
           </div>
         </div>
+        <label>Common Presets</label>
         <div class="btnbar" id="presetBtns"></div>
+        <small class="help">Or type in Barcode below to auto input correct resolution.</small>
       </div>
 
       <div class="section">
@@ -365,6 +367,8 @@
 
       <div class="section">
         <h2>5 - Export</h2>
+        <label for="fileName">Image Name</label>
+        <input id="fileName" type="text" value="esl_output" />
         <div class="btnbar">
           <button id="export" class="primary" disabled>Download PNG</button>
         </div>
@@ -411,8 +415,7 @@
             </select>
           </div>
         </div>
-        <small class="help">Dithering applies only when Color Mode ≠ “Color”. Adjustments apply before
-          dithering.</small>
+        <small class="help">Dithering applies only when not in Color Mode. Adjustments apply before dithering.</small>
         <div class="btnbar">
           <button id="resetEffects">Reset Effects</button>
         </div>
@@ -742,8 +745,14 @@
       function endPtr(e) { state.pointers.delete(e.pointerId); if (state.pointers.size < 2) { state.lastGestureDist = null; state.lastGestureMid = null; } }
       wrap.addEventListener('pointerup', endPtr); wrap.addEventListener('pointercancel', endPtr); wrap.addEventListener('pointerleave', endPtr);
 
-      // Export exact frame
-      exportBtn.addEventListener('click', () => { if (!state.img) return; const off = renderExportCanvas(); if (!off) return; const a = document.createElement('a'); a.download = `output_${off.width}x${off.height}.png`; a.href = off.toDataURL('image/png', 1.0); a.click(); });
+      // Export exact frame with custom name
+      exportBtn.addEventListener('click', () => {
+        if (!state.expCanvas) return;
+        const link = document.createElement('a');
+        link.download = ($('#fileName').value || 'esl_output') + '.png';
+        link.href = state.expCanvas.toDataURL('image/png');
+        link.click();
+      });
 
       new ResizeObserver(draw).observe(wrap);
       // Load default base64 image on boot (parity with OEPL BLE)

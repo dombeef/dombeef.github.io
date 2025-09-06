@@ -350,6 +350,8 @@
 
       <div class="section">
         <h2>2 - Export & Upload</h2>
+        <label for="fileName">Image Name</label>
+        <input id="fileName" type="text" value="esl_output" />
         <button id="export" class="primary" disabled>Download PNG</button>
         <div class="btnbar">
           <button id="uploadRaw" class="success" disabled>Upload Raw to ESL</button>
@@ -358,6 +360,7 @@
         <progress id="uploadProgress" max="100" value="0"></progress>
         <small class="help">Output size: <span id="outInfo">—</span></small>
       </div>
+
 
       <div class="section">
         <h2>3 - Output Size</h2>
@@ -487,8 +490,10 @@
       <span class="close" onclick="closeModal('aboutModal')" aria-label="Close">&times;</span>
       <h3 id="aboutTitle">About</h3>
       <p>
-        This webpage was created by <b>dombeef</b>, based on and referencing the original
-        image conversion / BLE transmission code by <b>atc1441</b> on Github.
+        This webpage was created by <b><a href="https://github.com/dombeef" target="_blank">dombeef</a></b>, based on
+        and referencing the original
+        image conversion / BLE transmission code by <b><a href="https://github.com/atc1441/"
+            target="_blank">atc1441</a></b> on Github.
       </p>
       <p>
         This page was originally designed to work with Pricer ESL tags and communicate to them with custom hardware.
@@ -1027,7 +1032,14 @@
       function endPtr(e) { state.pointers.delete(e.pointerId); if (state.pointers.size < 2) { state.lastGestureDist = null; state.lastGestureMid = null; } }
       wrap.addEventListener('pointerup', endPtr); wrap.addEventListener('pointercancel', endPtr); wrap.addEventListener('pointerleave', endPtr);
 
-      exportBtn.addEventListener('click', () => { if (!state.img) return; const off = renderExportCanvas(); if (!off) return; const a = document.createElement('a'); a.download = `output_${off.width}x${off.height}.png`; a.href = off.toDataURL('image/png', 1.0); a.click(); });
+      // Export exact frame with custom name
+      exportBtn.addEventListener('click', () => {
+        if (!state.expCanvas) return;
+        const link = document.createElement('a');
+        link.download = ($('#fileName').value || 'esl_output') + '.png';
+        link.href = state.expCanvas.toDataURL('image/png');
+        link.click();
+      });
 
       bgSel.value = 'white'; updateBgVisibility();
       new ResizeObserver(draw).observe(wrap);
