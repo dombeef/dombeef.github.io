@@ -250,13 +250,70 @@
         height: 70vh
       }
     }
+
+    /* Header: title (left) + actions (right) */
+    .header-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+      overflow: auto
+    }
+
+    .modal-content {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 640px;
+      margin: 10% auto;
+      padding: 20px;
+    }
+
+    .modal-content a {
+      color: var(--accent);
+      text-decoration: underline
+    }
+
+    .close {
+      float: right;
+      font-size: 1.6em;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .close:hover {
+      color: #fff
+    }
   </style>
 </head>
 
 <body>
   <header>
-    <h1>Dynamic ESL Image Generator Tool + Transmitter for ESL BLASTER</h1>
+    <div class="header-topbar">
+      <h1>Dynamic ESL Image Generator Tool + Transmitter for ESL BLASTER</h1>
+      <div class="header-actions">
+        <button id="helpBtn">Help</button>
+        <button id="aboutBtn">About</button>
+      </div>
+    </div>
   </header>
+
 
   <div class="app">
     <aside class="panel" id="sidebar">
@@ -373,6 +430,48 @@
       </div>
     </main>
   </div>
+
+  <!-- Help Modal -->
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('helpModal')">&times;</span>
+      <h3>Help</h3>
+      <p>
+        To use this tool:
+      <ul>
+        <li>You need an <b>ESL Blaster</b> (get one at <a href="https://www.furrtek.org/shop/"
+            target="_blank">furrtek.org</a>) or build your own. <a
+            href="https://github.com/furrtek/PrecIR/tree/master/hardware/esl_blaster" target="_blank">ESL BLASTER Github
+            page</a></li>
+        <li>Add an input image, choose the correct output resolution/tag resolution, and adjust the image until the preview looks good.</li>
+        <li>Connect to the USB ESL Blaster by pressing <b>"Connect ESL Blaster"</b></li>
+        <li>Enter a valid 17-character ESL barcode.</li>
+        <li>Click <b>Send Image</b> to transmit.</li>
+      </ul>
+      </p>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="aboutModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('aboutModal')">&times;</span>
+      <h3>About</h3>
+      <p>
+        This webpage was created by <b><a href="https://github.com/dombeef" target="_blank">dombeef</a></b>, based on
+        and referencing the original Python ESL blaster code
+        by <b>furrtek</b>. <a href="https://github.com/furrtek/PrecIR" target="_blank">PrecIR Github page</a>
+        <br><br>
+        Special thanks to <a href="https://www.furrtek.org" target="_blank">furrtek.org</a> for the excellent
+        research, documentation, and open-source tools to make this possible.
+        <br>
+        Visit <a href="https://www.furrtek.org/index.php?a=esl&ss=3" target="_blank">furrtek: Reverse-engineering
+          infrared-based electronic shelf labels</a> for more information.
+        <br>
+      </p>
+    </div>
+  </div>
+
 
   <script>
     (() => {
@@ -510,6 +609,30 @@
       exportBtn.addEventListener('click', () => { if (!state.img) return; const off = renderExportCanvas(); if (!off) return; const a = document.createElement('a'); a.download = `output_${off.width}x${off.height}.png`; a.href = off.toDataURL('image/png', 1.0); a.click(); });
 
       new ResizeObserver(draw).observe(wrap);
+    })();
+
+    (function () {
+      const helpBtn = document.getElementById('helpBtn');
+      const aboutBtn = document.getElementById('aboutBtn');
+      const helpModal = document.getElementById('helpModal');
+      const aboutModal = document.getElementById('aboutModal');
+
+      function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'block'; }
+      function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+      window.closeModal = closeModal; // for the × buttons
+
+      helpBtn?.addEventListener('click', () => openModal('helpModal'));
+      aboutBtn?.addEventListener('click', () => openModal('aboutModal'));
+
+      // close when clicking backdrop
+      window.addEventListener('click', (e) => {
+        if (e.target === helpModal) closeModal('helpModal');
+        if (e.target === aboutModal) closeModal('aboutModal');
+      });
+      // close with Esc
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { closeModal('helpModal'); closeModal('aboutModal'); }
+      });
     })();
   </script>
 </body>
