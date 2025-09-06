@@ -334,10 +334,7 @@
             <input id="outH" type="number" min="1" step="1" value="480" />
           </div>
         </div>
-        <div class="btnbar">
-          <button id="preset296">296×128</button>
-          <button id="preset648">648×480</button>
-        </div>
+        <div class="btnbar" id="presetBtns"></div>
       </div>
 
       <div class="section">
@@ -416,6 +413,9 @@
         </div>
         <small class="help">Dithering applies only when Color Mode ≠ “Color”. Adjustments apply before
           dithering.</small>
+        <div class="btnbar">
+          <button id="resetEffects">Reset Effects</button>
+        </div>
       </div>
     </aside>
 
@@ -443,7 +443,8 @@
             target="_blank">furrtek.org</a>) or build your own. <a
             href="https://github.com/furrtek/PrecIR/tree/master/hardware/esl_blaster" target="_blank">ESL BLASTER Github
             page</a></li>
-        <li>Add an input image, choose the correct output resolution/tag resolution, and adjust the image until the preview looks good.</li>
+        <li>Add an input image, choose the correct output resolution/tag resolution, and adjust the image until the
+          preview looks good.</li>
         <li>Connect to the USB ESL Blaster by pressing <b>"Connect ESL Blaster"</b></li>
         <li>Enter a valid 17-character ESL barcode.</li>
         <li>Click <b>Send Image</b> to transmit.</li>
@@ -480,7 +481,27 @@
       const wrap = $('#viewportWrap');
       const fileInput = $('#file');
       const outW = $('#outW'), outH = $('#outH');
-      const preset296 = $('#preset296'), preset648 = $('#preset648');
+
+      // --- Output size presets (array-driven) ---
+      const outputPresets = [
+        { name: "Pricer 1328 (296×128)", w: 296, h: 128 },
+        { name: "Pricer XXXX (648×480)", w: 648, h: 480 }
+      ];
+
+      // Build preset buttons dynamically
+      const presetBtns = $('#presetBtns');
+      outputPresets.forEach(preset => {
+        const btn = document.createElement('button');
+        btn.textContent = preset.name;
+        btn.addEventListener('click', () => {
+          outW.value = preset.w;
+          outH.value = preset.h;
+          draw();
+        });
+        presetBtns.appendChild(btn);
+      });
+
+
       const zoom = $('#zoom'), zoomLabel = $('#zoomLabel');
       const rotation = $('#rotation'), rotLabel = $('#rotLabel');
       const rotLeft = $('#rotLeft'), rotRight = $('#rotRight');
@@ -495,6 +516,10 @@
       const bVal = $('#bVal'), cVal = $('#cVal'), sVal = $('#sVal');
       const colorMode = $('#colorMode'), ditherSel = $('#dither');
 
+      // Set default color/dither
+      colorMode.value = 'bwr';
+      ditherSel.value = 'atkinson';
+      
       // WebSerial UI
       const serialConnectBtn = $('#serialConnect');
       const serialSendBtn = $('#serialSend');
@@ -504,7 +529,11 @@
       const log = (msg) => { if (!serialLogEl) return; serialLogEl.textContent += msg + '\n'; serialLogEl.scrollTop = serialLogEl.scrollHeight; console.log(msg); };
       const setSerialStatus = (msg) => { if (serialStatus) serialStatus.textContent = msg || ''; };
 
-      const state = { img: null, imgW: 0, imgH: 0, scale: 1, rotation: 0, tx: 0, ty: 0, view: 'source', pointers: new Map(), lastGestureDist: null, lastGestureMid: null, expCanvas: null, bayer16: null };
+      const state = { img: null, imgW: 0, imgH: 0, scale: 1, rotation: 0, tx: 0, ty: 0, view: 'output', pointers: new Map(), lastGestureDist: null, lastGestureMid: null, expCanvas: null, bayer16: null };
+
+      // Reflect default view in the buttons
+      viewOutputBtn.classList.add('active');
+      viewSourceBtn.classList.remove('active');
 
       function setCanvasSizeToCSS(cvs) { const dpr = window.devicePixelRatio || 1; const r = cvs.getBoundingClientRect(); cvs.width = Math.max(1, Math.floor(r.width * dpr)); cvs.height = Math.max(1, Math.floor(r.height * dpr)); return { dpr, cssW: r.width, cssH: r.height }; }
       function getCssSize(cvs) { const r = cvs.getBoundingClientRect(); return { cssW: r.width, cssH: r.height }; }
@@ -555,10 +584,6 @@
       rotRight?.addEventListener('click', () => { state.rotation = normalizeAngle(state.rotation + Math.PI / 2); rotation.value = Math.round(state.rotation * 180 / Math.PI); rotLabel.textContent = `${rotation.value}°`; draw(); });
 
       ;[outW, outH].forEach(el => el.addEventListener('input', draw));
-      // custom preset list
-      preset296.addEventListener('click', () => { outW.value = 296; outH.value = 128; draw(); });
-      preset648.addEventListener('click', () => { outW.value = 648; outH.value = 480; draw(); });
-
 
       fitBoxBtn.addEventListener('click', () => { if (!state.img) return; const { cssW, cssH } = getCssSize(canvas); const { fw, fh } = computeFrame(cssW, cssH); const sX = fw / state.imgW, sY = fh / state.imgH; state.scale = Math.max(sX, sY); state.tx = 0; state.ty = 0; zoom.value = Math.round(state.scale * 100); zoomLabel.textContent = `${zoom.value}%`; draw(); });
 
@@ -575,6 +600,18 @@
       colorMode.addEventListener('change', () => { updateDitherUI(); draw(); });
       ditherSel.addEventListener('change', () => { draw(); });
       updateDitherUI();
+
+      // Reset effects and dithering to defaults
+      $('#resetEffects').addEventListener('click', () => {
+        brightness.value = 0;
+        contrast.value = 0;
+        saturation.value = 0;
+        colorMode.value = 'bwr';   // default
+        ditherSel.value = 'atkinson'; // default
+        updateEffectLabels();
+        updateDitherUI();
+        draw();
+      });
 
       // ===== WebSerial (ESL Blaster) =====
       let port = null, writer = null, reader = null, serialReady = false;
