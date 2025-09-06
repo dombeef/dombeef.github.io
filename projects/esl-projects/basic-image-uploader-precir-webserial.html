@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>ESL Blaster WebSerial Uploader</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #222;
+      color: #ddd;
+      padding: 2em;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      gap: 2em;
+    }
+
+
+    .left-panel {
+      flex: 1;
+    }
+
+    .right-panel {
+      width: 400px;
+    }
+
+    label,
+    input,
+    select,
+    button {
+      font-size: 1em;
+      margin-top: 0.5em;
+    }
+
+    .log {
+      margin-top: 1em;
+      padding: 1em;
+      background: #111;
+      border-radius: 5px;
+      height: 100%;
+      max-height: 40em;
+      overflow-y: auto;
+      font-size: 0.95em;
+      white-space: pre-line;
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 1em;
+      align-items: center;
+    }
+
+    #barcode-info {
+      font-size: 1em;
+      margin-left: 1em;
+      margin-top: 0.5em;
+    }
+
+    #imgsize-warning {
+      color: #f88;
+      font-weight: bold;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-content {
+      background-color: #333;
+      color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #555;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 10px;
+    }
+
+    .modal-content a {
+      color: #9cf;
+      text-decoration: underline;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 1.5em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #fff;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="left-panel">
+      <div>
+        <h2>ESL Blaster Image Uploader (WebSerial)</h2>
+
+        <button id="connect">Connect ESL Blaster</button>
+        <br>
+        <label>Barcode (17 digits): <input id="barcode" maxlength="17" autocomplete="off"></label>
+        <div id="barcode-info"></div>
+        <br>
+        <label>Image (PNG/JPG): <input type="file" id="image" accept="image/*"></label><br>
+        <label>Page: <input id="page" type="number" min="0" max="15" value="0" style="width:3em;"></label>
+        <label>X: <input id="posx" type="number" value="0" style="width:4em;"></label>
+        <label>Y: <input id="posy" type="number" value="0" style="width:4em;"></label>
+        <label>Force PP4: <input id="pp4" type="checkbox"></label>
+        <button id="send" disabled>Send Image</button>
+
+        <br><br>
+        <b>Special Commands(EXPERIMENTAL: Likely not working):</b><br>
+        <button onclick="sendPageDM(0, 1)">Show Debug Info*</button>
+        <button onclick="sendPageDM(0, 8)">Hide Debug Info*</button>
+        <button onclick="flashLED()">Flash LED</button><br>
+        <label>Custom Page: <input id="customPage" type="number" value="1" min="0" max="15" style="width:3em;"></label>
+        <label>Duration:
+          <select id="customDuration">
+            <option value="1">4 sec</option>
+            <option value="2">8 sec</option>
+            <option value="3">30 sec</option>
+            <option value="4">8 min</option>
+            <option value="5">30 min</option>
+            <option value="6">1 hour</option>
+            <option value="7">1h30</option>
+            <option value="8">Until refresh</option>
+          </select>
+        </label>
+        <button onclick="sendCustomPageDM()">Send Page</button>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div style="display: flex; justify-content: flex-end; gap: 0.5em; margin-bottom: 0.5em;">
+        <button onclick="showHelp()">Help</button>
+        <button onclick="showAbout()">About</button>
+        <div id="helpModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal('helpModal')">&times;</span>
+            <h3>Help</h3>
+            <p>
+              To use this tool:
+            <ul>
+              <li>You need an <b>ESL Blaster</b> (get one at <a href="https://www.furrtek.org/shop/"
+                  target="_blank">furrtek.org</a>) or build your own. <a
+                  href="https://github.com/furrtek/PrecIR/tree/master/hardware/esl_blaster" target="_blank">ESL BLASTER
+                  Github page</a></li>
+              <li>Connect to the USB device first by pressing <b>"Connect ESL Blaster"</b></li>
+              <li><b>Dithering is recommended.</b> Try using <a href="https://app.dithermark.com/"
+                  target="_blank">dithermark.com</a> for best results. Make sure to use exact HEX color codes mentioned
+                below.</li>
+              <li>Black(#000000), white(#FFFFFF), and red(#FF0000) hex color codes depending on your ESL.</li>
+              <li>If image uploaded isn't exactly black/white or black/white/red, the ESL may not display the image properly.</li>
+              <li>Enter a valid 17-character ESL barcode. You can use this to confirm the exact resolution of the ESL panel for the image you plan to use. There is NO auto scaling for images too big to transmit.</li>
+              <li>Click <b>Send Image</b> to transmit.</li>
+            </ul>
+            </p>
+          </div>
+        </div>
+        <div id="aboutModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal('aboutModal')">&times;</span>
+            <h3>About</h3>
+            <p>
+              This webpage was created by <b><a href="https://github.com/dombeef" target="_blank">dombeef</a></b>, based on and referencing the original Python ESL blaster code
+              by <b>furrtek</b>. <a href="https://github.com/furrtek/PrecIR" target="_blank">PrecIR Github page</a>
+              <br><br>
+              Special thanks to <a href="https://www.furrtek.org" target="_blank">furrtek.org</a> for the excellent
+              research, documentation, and open-source tools to make this possible.
+              <br>
+              Visit <a href="https://www.furrtek.org/index.php?a=esl&ss=3" target="_blank">furrtek: Reverse-engineering infrared-based electronic shelf labels</a> for more information.
+              <br>
+            </p>
+          </div>
+        </div>
+
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // Converted ESL Type Info Array
+    // most info from https://github.com/david4599/PricehaxBT 
+    // but some from manual hands on research with price tags in person
+    const eslTypes = [
+      // { type, mode, resolution: [x, y], name }
+      { type: 1206, mode: "bw", resolution: null, name: "Continuum E2 HCS" },
+      { type: 1207, mode: "bw", resolution: null, name: "Continuum E2 HCN" },
+      { type: 1240, mode: "bw", resolution: null, name: "Continuum E4 HCS" },
+      { type: 1241, mode: "bw", resolution: null, name: "Continuum E4 HCN" },
+      { type: 1242, mode: "bw", resolution: null, name: "Continuum E4 HCN FZ" },
+      { type: 1217, mode: "bw", resolution: null, name: "Continuum E5 HCS" },
+      { type: 1265, mode: "bw", resolution: null, name: "Continuum E5 HCS" },
+      { type: 1219, mode: "bw", resolution: null, name: "Continuum E5 HCN" },
+      { type: 1291, mode: "bw", resolution: null, name: "FVL Promoline 3-16 (18619-00) segments bitmap not done !" },
+      { type: 1510, mode: "bw", resolution: null, name: "SmartTag E5 M" },
+      { type: 1300, mode: "bw", resolution: [172, 72], name: "DotMatrix DM3370 172x72" },
+      { type: 1276, mode: "bw", resolution: [320, 140], name: "DotMatrix DM90 320x140 EXPERIMENTAL" },
+      { type: 1275, mode: "bw", resolution: [320, 192], name: "DotMatrix DM110 320x192 (13400-00) EXPERIMENTAL" },
+      { type: 1317, mode: "bw", resolution: [152, 152], name: "SmartTag HD S 152x152" },
+      { type: 1322, mode: "bw", resolution: [152, 152], name: "SmartTag HD S 152x152" },
+      { type: 1339, mode: "color", resolution: [152, 152], name: "SmartTag HD S Red 152x152 EXPERIMENTAL" },
+      { type: 1318, mode: "bw", resolution: [208, 112], name: "SmartTag HD M 208x112" },
+      { type: 1327, mode: "color", resolution: [208, 112], name: "SmartTag HD M Red 208x112" },
+      { type: 1324, mode: "bw", resolution: [208, 112], name: "SmartTag HD M FZ 208x112 EXPERIMENTAL" },
+      { type: 1315, mode: "bw", resolution: [296, 128], name: "SmartTag HD L 296x128 EXPERIMENTAL" },
+      { type: 1370, mode: "color", resolution: [296, 128], name: "SmartTag HD L Red 296x128" },
+      { type: 1328, mode: "color", resolution: [296, 128], name: "SmartTag HD L Red 296x128" },
+      { type: 1344, mode: "color", resolution: [296, 128], name: "SmartTag HD L Yellow 296x128 EXPERIMENTAL" },
+      { type: 1348, mode: "color", resolution: [264, 176], name: "SmartTag HD T Red 296x128 EXPERIMENTAL" },
+      { type: 1349, mode: "color", resolution: [264, 176], name: "SmartTag HD T Yellow 296x128 EXPERIMENTAL" },
+      { type: 1314, mode: "bw", resolution: [400, 300], name: "SmartTag HD110 400x300 EXPERIMENTAL" },
+      { type: 1336, mode: "color", resolution: [400, 300], name: "SmartTag HD110 Red 400x300 EXPERIMENTAL" },
+      { type: 1351, mode: "bw", resolution: [648, 480], name: "SmartTag HD150 648x480 EXPERIMENTAL" },
+      { type: 1371, mode: "color", resolution: [648, 480], name: "SmartTag HD150 Red 648x480" },
+      { type: 1353, mode: "color", resolution: [648, 480], name: "SmartTag HD150 Red 648x480" },
+      { type: 1354, mode: "color", resolution: [648, 480], name: "SmartTag HD150 Red 648x480" },
+      { type: 1319, mode: "bw", resolution: [800, 480], name: "SmartTag HD200 800x480 EXPERIMENTAL" },
+      { type: 1340, mode: "color", resolution: [640, 382], name: "SmartTag HD200 Red 640x382" },
+      { type: 1346, mode: "color", resolution: [800, 480], name: "SmartTag HD200 Yellow 800x480 EXPERIMENTAL" }
+    ];
+
+    function getESLTypeInfo(plType) {
+      return eslTypes.find(e => e.type === plType);
+    }
+
+    // barcode parser now handles letter prefix
+    function parseBarcode(barcode) {
+      let digits = /^\d/.test(barcode[0]) ? barcode : barcode.substring(1);
+      if (!/^\d{16,17}$/.test(digits)) return null;
+      let plID = (parseInt(digits.substring(1, 6)) << 16) + parseInt(digits.substring(6, 11));
+      let plSerial = plID.toString(16).toUpperCase();
+      let plType = parseInt(digits.substring(11, 15));
+      return { plID, plSerial, plType };
+    }
+
+    function updateBarcodeInfo() {
+      const barcode = document.getElementById('barcode').value.trim();
+      const infoDiv = document.getElementById('barcode-info');
+      lastBarcodePLType = null;
+      lastBarcodeResolution = null;
+      let colorText = '', resText = '', nameText = '', fieldText = '';
+
+      if (barcode.length === 17) {
+        let parsed = parseBarcode(barcode);
+        if (!parsed) {
+          infoDiv.textContent = 'Invalid barcode format';
+          return;
+        }
+        lastBarcodePLType = parsed.plType;
+        const info = getESLTypeInfo(parsed.plType);
+
+        if (info) {
+          if (info.mode === "bw") {
+            colorText = `<b>Color Mode:</b> <span style="color:#9ff">Black/White</span>`;
+          } else {
+            colorText = `<b>Color Mode:</b> <span style="color:#f9f">Color</span>`;
+          }
+          window._detectedColorMode = (info.mode === "bw" ? 0 : 1);
+          nameText = `<b>Type:</b> <span style="color:#ff9">${parsed.plType} (${info.name})</span>`;
+
+          if (info.resolution) {
+            resText = `<br><b>Tag Resolution:</b> <span style="color:#9f9">${info.resolution[0]} x ${info.resolution[1]}</span>`;
+            lastBarcodeResolution = info.resolution;
+          } else {
+            resText = `<br><b>Tag Resolution:</b> <span style="color:#f99">Unknown</span>`;
+          }
+        } else {
+          colorText = `<b>Color Mode:</b> <span style="color:#f9f">Color (unsure - please verify!)</span>`;
+          nameText = `<b>Type:</b> <span style="color:#ff9">${parsed.plType} (unknown type)</span>`;
+          resText = `<br><b>Tag Resolution:</b> <span style="color:#f99">Unknown</span>`;
+          window._detectedColorMode = 1;
+        }
+
+        // breakdown barcode fields:
+        const g = barcode[0];
+        const m1 = barcode[2];
+        const m2 = barcode[3];
+        const y = barcode[4];
+        const w1 = barcode[5];
+        const w2 = barcode[6];
+        const s = barcode.substring(7, 12);
+        const t = barcode.substring(12, 16);
+        const c = barcode[16];
+
+        fieldText = `
+  <br><br><b>Barcode Breakdown:</b><br>
+  <code style="color:#ccc;">${barcode}</code><br>
+  <b>G:</b> <span style="color:#6ff">${g}</span> – Group identifier (depends on ESL type)<br>
+  <b>4:</b> <span style="color:#6ff">4</span> – Constant value<br>
+  <b>MM:</b> <span style="color:#6ff">${m1}${m2}</span> – Manufacturing unit<br>
+  <b>Y:</b> <span style="color:#6ff">${y}</span> – Year of manufacture<br>
+  <b>WW:</b> <span style="color:#6ff">${w1}${w2}</span> – Week of manufacture<br>
+  <b>SSSSS:</b> <span style="color:#6ff">${s}</span> – Serial number<br>
+  <b>TTTT:</b> <span style="color:#6ff">${t}</span> – ESL type ${info
+            ? `(<span style="color:#ff9">${parsed.plType}: ${info.name}</span>)`
+            : `(<span style="color:#f99">unknown type</span>)`
+          }<br>
+
+  <b>C:</b> <span style="color:#6ff">${c}</span> – Checksum
+`;
+
+        // checksum validation
+        const asciiSum = barcode.substring(0, 16).split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+        const checksumExpected = asciiSum % 10;
+        const checksumActual = parseInt(c, 10);
+        const checksumValid = checksumExpected === checksumActual;
+
+        const checksumLine = `<b>Checksum:</b> <span style="color:${checksumValid ? '#9f9' : '#f99'}">${c} (${checksumValid ? 'valid' : `invalid, expected ${checksumExpected}`})</span>`;
+
+        fieldText += `<br>${checksumLine}`;
+
+        infoDiv.innerHTML =
+          `<b>Serial (PLID):</b> <span style="color:#6ff">${parsed.plSerial}</span><br>` +
+          nameText + resText + `<br>` + colorText + fieldText;
+
+      } else if (barcode.length === 0) {
+        infoDiv.textContent = '';
+      } else {
+        infoDiv.textContent = 'Barcode must be 17 digits';
+      }
+    }
+
+
+    document.getElementById('barcode').addEventListener('input', updateBarcodeInfo);
+
+    // log element
+    function log(msg) {
+      const l = document.getElementById('log');
+      l.textContent += msg + '\n';
+      l.scrollTop = l.scrollHeight;
+      console.log(msg);
+    }
+    function hex(b) { return b.map(x => x.toString(16).padStart(2, '0')).join(' '); }
+
+    // WebSerial to ESL BLASTER
+    let port, writer, reader;
+
+    async function connectSerial() {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 57600 });
+        log('Serial port opened.');
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+        // try handshake to device
+        await writer.write(new TextEncoder().encode('?'));
+        log('Sent ESL Blaster query "?"...');
+        let resp = await readUntil("ESLBlaster", 1000);
+        if (resp.includes("ESLBlaster")) {
+          log('[OK] ESL Blaster detected!');
+          document.getElementById('send').disabled = false;
+          return true;
+        }
+        log('[ERROR] ESL Blaster not detected (no response).');
+      } catch (e) {
+        log('[ERROR] Serial: ' + e);
+      }
+      return false;
+    }
+
+    async function readUntil(match, timeout = 2000) {
+      let result = '';
+      let t0 = Date.now();
+      while (Date.now() - t0 < timeout) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) result += new TextDecoder().decode(value);
+        if (result.includes(match)) break;
+      }
+      return result;
+    }
+
+    async function writeBytes(bytes) {
+      await writer.write(new Uint8Array(bytes));
+    }
+
+    async function waitForByte(byteVal, timeout = 3000) {
+      let t0 = Date.now();
+      while (Date.now() - t0 < timeout) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value && value[0] === byteVal) return true;
+      }
+      return false;
+    }
+
+    // image conversion logic
+    function getPLID(barcode) {
+      let digits = /^\d/.test(barcode[0]) ? barcode : barcode.substring(1);
+      let PLID = [0, 0, 0, 0];
+      if (digits.length < 16) return PLID;
+      let id_value = parseInt(digits.slice(1, 6)) + (parseInt(digits.slice(6, 11)) << 16);
+      PLID[0] = (id_value >> 8) & 0xFF;
+      PLID[1] = id_value & 0xFF;
+      PLID[2] = (id_value >> 24) & 0xFF;
+      PLID[3] = (id_value >> 16) & 0xFF;
+      return PLID;
+    }
+
+    function crc16(data) {
+      let result = 0x8408, poly = 0x8408;
+      for (let by of data) {
+        result ^= by;
+        for (let bi = 0; bi < 8; bi++) {
+          if (result & 1) {
+            result >>= 1;
+            result ^= poly;
+          } else result >>= 1;
+        }
+      }
+      return result & 0xFFFF;
+    }
+
+    function appendWord(arr, v) {
+      arr.push((v >> 8) & 0xFF);
+      arr.push(v & 0xFF);
+    }
+
+    function terminateFrame(frame, pp16, repeats) {
+      let crc = crc16(frame);
+      if (pp16) frame.unshift(0x00, 0x00, 0x00, 0x40);
+      frame.push(crc & 0xFF, (crc >> 8) & 0xFF);
+      frame.push(repeats & 0xFF, (repeats >> 8) & 0xFF);
+    }
+
+    function makeRawFrame(protocol, PLID, cmd) {
+      return [protocol, PLID[3], PLID[2], PLID[1], PLID[0], cmd];
+    }
+
+    function makeMCUFrame(PLID, cmd) {
+      return [0x85, PLID[3], PLID[2], PLID[1], PLID[0], 0x34, 0x00, 0x00, 0x00, cmd];
+    }
+
+    function makePingFrame(PLID, pp16, repeats) {
+      let frame = makeRawFrame(0x85, PLID, 0x17);
+      frame.push(0x01, 0x00, 0x00, 0x00);
+      for (let i = 0; i < 22; i++) frame.push(0x01);
+      terminateFrame(frame, pp16, repeats);
+      return frame;
+    }
+
+    function makeRefreshFrame(PLID, pp16) {
+      let frame = makeMCUFrame(PLID, 0x01);
+      for (let i = 0; i < 22; i++) frame.push(0x00);
+      terminateFrame(frame, pp16, 1);
+      return frame;
+    }
+
+    //basic img color convert, works just well enough but should be improved
+    function imageConvert(imageData, colorPass) {
+      const pixels = [];
+      const { data, width, height } = imageData;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          let idx = (y * width + x) * 4;
+          let r = data[idx], g = data[idx + 1], b = data[idx + 2];
+          let luma = (0.21 * r + 0.72 * g + 0.07 * b) / 255;
+          if (colorPass)
+            pixels.push((luma >= 0.1 && luma < 0.9) ? 0 : 1);
+          else
+            pixels.push(luma < 0.5 ? 0 : 1);
+        }
+      }
+      return pixels;
+    }
+
+    function recordRun(run_count, bits, compressed) {
+      bits.length = 0;
+      let rc = run_count;
+      while (rc) {
+        bits.unshift(rc & 1);
+        rc >>= 1;
+      }
+      for (let b of bits.slice(1)) compressed.push(0);
+      if (bits.length) compressed.push(...bits);
+    }
+
+    // UI event handlers
+    let imagePixels = null, imageWidth = 0, imageHeight = 0;
+
+    document.getElementById('image').addEventListener('change', async function (ev) {
+      let file = ev.target.files[0];
+      if (!file) return;
+      let img = new Image();
+      img.onload = function () {
+        let cv = document.createElement('canvas');
+        cv.width = img.width;
+        cv.height = img.height;
+        let ctx = cv.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        let imageData = ctx.getImageData(0, 0, img.width, img.height);
+        imagePixels = imageData;
+        imageWidth = img.width;
+        imageHeight = img.height;
+        log(`Image loaded: ${img.width}x${img.height}`);
+
+        // now warn if image is too large for detected tag
+        let infoDiv = document.getElementById('barcode-info');
+        let warningId = 'imgsize-warning';
+        let warningElem = document.getElementById(warningId);
+        if (warningElem) warningElem.remove();
+        if (lastBarcodeResolution) {
+          let [w, h] = lastBarcodeResolution;
+          if (img.width > w || img.height > h) {
+            let warnDiv = document.createElement('div');
+            warnDiv.id = warningId;
+            warnDiv.textContent = `Warning: Image is ${img.width}x${img.height}, which is larger than tag's ${w}x${h}!`;
+            infoDiv.appendChild(warnDiv);
+            log(`[WARN] Image is larger than ESL tag resolution! (${img.width}x${img.height} > ${w}x${h})`);
+          }
+        }
+      };
+      img.onerror = () => log('[ERROR] Could not load image');
+      img.src = URL.createObjectURL(file);
+    });
+
+    document.getElementById('connect').onclick = connectSerial;
+
+    document.getElementById('send').onclick = async function () {
+      try {
+        let barcode = document.getElementById('barcode').value.trim();
+        let page = parseInt(document.getElementById('page').value) || 0;
+        let color_mode = (typeof window._detectedColorMode !== "undefined") ? window._detectedColorMode : 1;
+        let pos_x = parseInt(document.getElementById('posx').value) || 0;
+        let pos_y = parseInt(document.getElementById('posy').value) || 0;
+        let force_pp4 = document.getElementById('pp4').checked;
+
+        if (!imagePixels) return log('[ERROR] No image loaded');
+        if (barcode.length !== 17) return log('[ERROR] Barcode must be 17 chars');
+
+        let width = imageWidth, height = imageHeight;
+        let pixel_count = width * height;
+        if (pixel_count & 7) {
+          log(`[ERROR] Pixel count must be a multiple of 8 (currently ${pixel_count})`);
+          return;
+        }
+
+        let PLID = getPLID(barcode);
+        let pp16 = !force_pp4; // default to pp16 unless overridden
+
+        // first pass: b/w
+        let pixels = imageConvert(imagePixels, 0);
+        if (color_mode) pixels = pixels.concat(imageConvert(imagePixels, 1));
+        let size_raw = pixels.length;
+
+        // compression
+        let bits = [], compressed = [];
+        let run_pixel = pixels[0], run_count = 1;
+        compressed.push(run_pixel);
+        for (let i = 1; i < pixels.length; i++) {
+          if (pixels[i] === run_pixel) run_count++;
+          else {
+            recordRun(run_count, bits, compressed);
+            run_count = 1;
+            run_pixel = pixels[i];
+          }
+        }
+        if (run_count > 1) recordRun(run_count, bits, compressed);
+        let size_compressed = compressed.length;
+        let data, compression_type;
+        if (size_compressed < size_raw) {
+          log(`[INFO] Compression ratio: ${((1 - (size_compressed / size_raw)) * 100).toFixed(1)}% (${size_raw} -> ${size_compressed} bytes)`);
+          data = compressed;
+          compression_type = 2;
+        } else {
+          log(`[INFO] Compression not efficient, sending raw data`);
+          data = pixels;
+          compression_type = 0;
+        }
+        // pad data
+        const bytes_per_frame = 20, bits_per_frame = bytes_per_frame * 8;
+        let data_size = data.length;
+        let padding = bits_per_frame - (data_size % bits_per_frame);
+        if (padding !== bits_per_frame) for (let i = 0; i < padding; i++) data.push(0);
+        let padded_data_size = data.length;
+        let frame_count = padded_data_size / bits_per_frame;
+
+        // frame building
+        let frames = [];
+
+        // 1 - wake up ping
+        frames.push(makePingFrame(PLID, pp16, 400));
+
+        // 2 - params frame
+        let frame = makeMCUFrame(PLID, 0x05);
+        appendWord(frame, padded_data_size / 8);
+        frame.push(0x00); // unused
+        frame.push(compression_type);
+        frame.push(page);
+        appendWord(frame, width);
+        appendWord(frame, height);
+        appendWord(frame, pos_x);
+        appendWord(frame, pos_y);
+        appendWord(frame, 0x0000); // keycode
+        frame.push(0x88);
+        appendWord(frame, 0x0000); // enabled pages
+        frame.push(0x00, 0x00, 0x00, 0x00);
+        terminateFrame(frame, pp16, 1);
+        frames.push(frame);
+
+        // 3 - data frames
+        let i = 0;
+        for (let fr = 0; fr < frame_count; fr++) {
+          let frame = makeMCUFrame(PLID, 0x20);
+          appendWord(frame, fr);
+          for (let by = 0; by < bytes_per_frame; by++) {
+            let v = 0;
+            for (let bi = 0; bi < 8; bi++) {
+              v <<= 1;
+              v |= data[i + bi];
+            }
+            frame.push(v);
+            i += 8;
+          }
+          terminateFrame(frame, pp16, 1);
+          frames.push(frame);
+        }
+
+        // 4 - refresh frame
+        frames.push(makeRefreshFrame(PLID, pp16));
+
+        // 5 - serial transmission code
+        log(`[INFO] Ready to transmit ${frames.length} frames. Starting...`);
+
+        for (let idx = 0; idx < frames.length; idx++) {
+          let fr = frames[idx];
+          let data_size = fr.length - 2;
+          let repeats = fr[fr.length - 2] + (fr[fr.length - 1] << 8);
+          if (pp16 && repeats > 32767) repeats = 32767;
+          if (pp16) repeats |= 0x8000;
+
+          let ba = [];
+          ba.push(76); // 'L'
+          ba.push(data_size);
+          ba.push(10); // timing
+          ba.push(repeats & 0xFF, (repeats >> 8) & 0xFF);
+          ba.push(...fr.slice(0, data_size));
+          ba.push(84); // 'T'
+
+          await writeBytes(ba);
+          log(`[TX] Frame ${idx + 1}/${frames.length} (${data_size} bytes, repeats: ${repeats & 0x7FFF})`);
+          let ok = await waitForByte(75, 5000); // wait for 'K'
+          if (!ok) log(`[WARN] No ACK ('K') after frame ${idx + 1}`);
+        }
+
+        log('[DONE] All frames transmitted. ESL should refresh in a few seconds.');
+
+      } catch (e) {
+        log('[ERROR] ' + e);
+      }
+    };
+    function sendPageDM(page, duration) {
+      const barcode = document.getElementById('barcode').value.trim();
+      if (barcode.length !== 17) return log('[ERROR] Barcode must be 17 chars');
+
+      const PLID = getPLID(barcode);
+      const pp16 = !document.getElementById('pp4').checked;
+
+      const hcode = [0x85, PLID[3], PLID[2], PLID[1], PLID[0], 0x06];
+      let dmdur = 0;
+      let durationDesc = '';
+
+      if (duration === 8) {
+        hcode.push(0xF1); // LED flash / persistent mode
+        hcode.push(0x00, 0x00); // padding
+        dmdur = 10;
+        durationDesc = 'LED Flash / Persistent';
+      } else {
+        hcode.push(((page & 0x0F) << 3) | 1); // standard format
+        hcode.push(0x00, 0x00);
+
+        if (duration === 1) { dmdur = 2; durationDesc = '4 sec'; }
+        else if (duration === 2) { dmdur = 4; durationDesc = '8 sec'; }
+        else if (duration === 3) { dmdur = 15; durationDesc = '30 sec'; }
+        else if (duration === 4) { dmdur = 240; durationDesc = '8 min'; }
+        else if (duration === 5) { dmdur = 900; durationDesc = '30 min'; }
+        else if (duration === 6) { dmdur = 1800; durationDesc = '1 hour'; }
+        else if (duration === 7) { dmdur = 2700; durationDesc = '1h30'; }
+        else dmdur = 2;
+      }
+
+      hcode.push((dmdur >> 8) & 0xFF, dmdur & 0xFF);
+
+      terminateFrame(hcode, pp16, pp16 ? 800 : 400);
+
+      log(`[INFO] Sending DM Page: ${page}, Duration: ${durationDesc}`);
+      sendSingleFrame(hcode, pp16, `[DONE] DM Page ${page} (${durationDesc}) sent.`);
+    }
+
+
+    function flashLED() {
+      log('[INFO] Flashing SmartTag LED...');
+      sendPageDM(0, 10); // 10 triggers LED flash via hcode[6] = 0x49
+    }
+
+
+    function sendCustomPageDM() {
+      const page = parseInt(document.getElementById('customPage').value) || 0;
+      const duration = parseInt(document.getElementById('customDuration').value) || 1;
+      sendPageDM(page, duration);
+    }
+
+    async function sendSingleFrame(frame, pp16, doneMessage = '[DONE] Quick frame sent.') {
+      const data_size = frame.length - 2;
+      let repeats = frame[frame.length - 2] + (frame[frame.length - 1] << 8);
+      if (pp16 && repeats > 32767) repeats = 32767;
+      if (pp16) repeats |= 0x8000;
+
+      let ba = [];
+      ba.push(76); // 'L'
+      ba.push(data_size);
+      ba.push(10); // timing
+      ba.push(repeats & 0xFF, (repeats >> 8) & 0xFF);
+      ba.push(...frame.slice(0, data_size));
+      ba.push(84); // 'T'
+
+      try {
+        await writeBytes(ba);
+        log(`[TX] Sent frame (${data_size} bytes, repeats: ${repeats & 0x7FFF})`);
+        let ok = await waitForByte(75, 3000); // wait for 'K'
+        if (!ok) log('[WARN] No ACK (K) received');
+        else log(doneMessage);
+      } catch (e) {
+        log('[ERROR] Failed to send frame: ' + e.message);
+      }
+    }
+
+    // help/about button modals
+    function showHelp() {
+      document.getElementById('helpModal').style.display = 'block';
+    }
+
+    function showAbout() {
+      document.getElementById('aboutModal').style.display = 'block';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    //click outside modal to close
+    window.onclick = function (event) {
+      const help = document.getElementById('helpModal');
+      const about = document.getElementById('aboutModal');
+      if (event.target === help) help.style.display = 'none';
+      if (event.target === about) about.style.display = 'none';
+    };
+  </script>
+</body>
+
+</html>

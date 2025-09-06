@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Dynamic ESL Image Generator Tool + Transmitter for ESL BLASTER</title>
+  <style>
+    :root {
+      --bg: #0b0e13;
+      --panel: #141922;
+      --text: #e8eef7;
+      --muted: #9bb0c5;
+      --accent: #4da3ff;
+      --border: #223040;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.25 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px
+    }
+
+    header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #0e131b, #0a0d12)
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: .3px
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      height: calc(100vh - 56px)
+    }
+
+    .panel {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 14px;
+      overflow: auto
+    }
+
+    .section {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #0f141c
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .12em
+    }
+
+    label {
+      display: block;
+      margin: 8px 0 6px;
+      color: var(--muted)
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #121824;
+      color: var(--text)
+    }
+
+    input[type="range"] {
+      width: 100%
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #121824
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px
+    }
+
+    .btnbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #111827;
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #061425;
+      border-color: #328fff;
+      font-weight: 600
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    small.help {
+      display: block;
+      color: var(--muted);
+      opacity: .9;
+      margin-top: 6px
+    }
+
+    .togglebar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px
+    }
+
+    .togglebar button.active {
+      background: var(--accent);
+      color: #061425;
+      border-color: #328fff;
+      font-weight: 600
+    }
+
+    .stage {
+      position: relative;
+      background: #0b0f17;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 1fr auto
+    }
+
+    .viewport-wrap {
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      touch-action: none
+    }
+
+    canvas#viewport {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: repeating-conic-gradient(from 45deg, #0f141d 0 25%, #0c1119 0 50%) 0/24px 24px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges
+    }
+
+    .hud {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      background: rgba(0, 0, 0, .45);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #c8d6e5
+    }
+
+    .footerbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      gap: 10px
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #0f1520;
+      border: 1px solid var(--border);
+      color: var(--muted)
+    }
+
+    /* WebSerial log */
+    .log {
+      margin-top: 8px;
+      padding: 8px;
+      background: #0b0f17;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      height: 160px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      white-space: pre-wrap
+    }
+
+    .serial-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    @media (max-width:900px) {
+      .app {
+        grid-template-columns: 1fr;
+        height: auto;
+        grid-auto-rows: auto
+      }
+
+      .panel {
+        border-right: 0;
+        border-bottom: 1px solid var(--border)
+      }
+
+      .stage {
+        height: 70vh
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Dynamic ESL Image Generator Tool + Transmitter for ESL BLASTER</h1>
+  </header>
+
+  <div class="app">
+    <aside class="panel" id="sidebar">
+      <div class="section">
+        <h2>1 - Input Image</h2>
+        <input type="file" id="file" accept="image/*" />
+      </div>
+
+      <div class="section">
+        <h2>2 - Output Size</h2>
+        <div class="row">
+          <div>
+            <label for="outW">Width (px)</label>
+            <input id="outW" type="number" min="1" step="1" value="648" />
+          </div>
+          <div>
+            <label for="outH">Height (px)</label>
+            <input id="outH" type="number" min="1" step="1" value="480" />
+          </div>
+        </div>
+        <div class="btnbar">
+          <button id="preset296">296×128</button>
+          <button id="preset648">648×480</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>3 - Transform</h2>
+        <label for="zoom">Zoom <span id="zoomLabel">100%</span></label>
+        <input id="zoom" type="range" min="5" max="800" value="100" />
+        <label for="rotation">Rotation <span id="rotLabel">0°</span></label>
+        <input id="rotation" type="range" min="-180" max="180" value="0" />
+        <div class="btnbar">
+          <button id="rotLeft">↺ 90°</button>
+          <button id="rotRight">↻ 90°</button>
+          <button id="fitBox">Fit to Box</button>
+          <button id="viewSource" class="active">Source View</button>
+          <button id="viewOutput">Output View</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>4 - Background</h2>
+        <select id="bg">
+          <option value="transparent">Transparent</option>
+          <option value="white" selected>White</option>
+          <option value="black">Black</option>
+          <option value="custom">Custom…</option>
+        </select>
+        <input type="color" id="bgColor" value="#000000" style="margin-top:8px;width:100%;display:none" />
+      </div>
+
+      <div class="section">
+        <h2>5 - Export</h2>
+        <div class="btnbar">
+          <button id="export" class="primary" disabled>Download PNG</button>
+        </div>
+        <label for="serialBarcode">Barcode (17 digits)</label>
+        <input id="serialBarcode" maxlength="17" autocomplete="off" />
+        <div class="btnbar">
+          <button id="serialConnect">Connect ESL Blaster</button>
+          <button id="serialSend" disabled>Send Image</button>
+        </div>
+        <small class="help">Output size: <span id="outInfo">—</span> • <span id="serialStatus"></span></small>
+        <div class="log" id="serialLog"></div>
+      </div>
+
+      <div class="section">
+        <h2>6 - Effects & Dithering</h2>
+        <div class="row">
+          <div>
+            <label for="brightness">Brightness <span id="bVal">0</span></label>
+            <input id="brightness" type="range" min="-100" max="100" value="0" />
+          </div>
+          <div>
+            <label for="contrast">Contrast <span id="cVal">0</span></label>
+            <input id="contrast" type="range" min="-100" max="100" value="0" />
+          </div>
+        </div>
+        <label for="saturation">Saturation <span id="sVal">0</span></label>
+        <input id="saturation" type="range" min="-100" max="100" value="0" />
+        <div class="row">
+          <div>
+            <label for="colorMode">Color Mode</label>
+            <select id="colorMode">
+              <option value="color">Color (no reduction)</option>
+              <option value="bw">Black / White</option>
+              <option value="bwr">Black / White / Red</option>
+            </select>
+          </div>
+          <div>
+            <label for="dither">Dither</label>
+            <select id="dither">
+              <option value="none">None</option>
+              <option value="fs">Floyd–Steinberg</option>
+              <option value="atkinson">Atkinson</option>
+              <option value="bayer16">Bayer 16×16</option>
+            </select>
+          </div>
+        </div>
+        <small class="help">Dithering applies only when Color Mode ≠ “Color”. Adjustments apply before
+          dithering.</small>
+      </div>
+    </aside>
+
+    <main class="stage" id="stage">
+      <div class="viewport-wrap" id="viewportWrap">
+        <canvas id="viewport"></canvas>
+        <div class="hud" id="hud">—</div>
+      </div>
+      <div class="footerbar">
+        <div class="pill" id="meta">No image loaded</div>
+        <div class="pill" id="hint">Drag to pan • Wheel/Pinch to zoom</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const $ = s => document.querySelector(s);
+      const canvas = $('#viewport'), ctx = canvas.getContext('2d'); ctx.imageSmoothingQuality = 'high';
+      const wrap = $('#viewportWrap');
+      const fileInput = $('#file');
+      const outW = $('#outW'), outH = $('#outH');
+      const preset296 = $('#preset296'), preset648 = $('#preset648');
+      const zoom = $('#zoom'), zoomLabel = $('#zoomLabel');
+      const rotation = $('#rotation'), rotLabel = $('#rotLabel');
+      const rotLeft = $('#rotLeft'), rotRight = $('#rotRight');
+      const fitBoxBtn = $('#fitBox');
+      const exportBtn = $('#export');
+      const outInfo = $('#outInfo');
+      const bgSel = $('#bg'), bgColor = $('#bgColor');
+      const viewSourceBtn = $('#viewSource'), viewOutputBtn = $('#viewOutput');
+      const meta = $('#meta');
+
+      const brightness = $('#brightness'), contrast = $('#contrast'), saturation = $('#saturation');
+      const bVal = $('#bVal'), cVal = $('#cVal'), sVal = $('#sVal');
+      const colorMode = $('#colorMode'), ditherSel = $('#dither');
+
+      // WebSerial UI
+      const serialConnectBtn = $('#serialConnect');
+      const serialSendBtn = $('#serialSend');
+      const serialBarcode = $('#serialBarcode');
+      const serialStatus = $('#serialStatus');
+      const serialLogEl = document.getElementById('serialLog');
+      const log = (msg) => { if (!serialLogEl) return; serialLogEl.textContent += msg + '\n'; serialLogEl.scrollTop = serialLogEl.scrollHeight; console.log(msg); };
+      const setSerialStatus = (msg) => { if (serialStatus) serialStatus.textContent = msg || ''; };
+
+      const state = { img: null, imgW: 0, imgH: 0, scale: 1, rotation: 0, tx: 0, ty: 0, view: 'source', pointers: new Map(), lastGestureDist: null, lastGestureMid: null, expCanvas: null, bayer16: null };
+
+      function setCanvasSizeToCSS(cvs) { const dpr = window.devicePixelRatio || 1; const r = cvs.getBoundingClientRect(); cvs.width = Math.max(1, Math.floor(r.width * dpr)); cvs.height = Math.max(1, Math.floor(r.height * dpr)); return { dpr, cssW: r.width, cssH: r.height }; }
+      function getCssSize(cvs) { const r = cvs.getBoundingClientRect(); return { cssW: r.width, cssH: r.height }; }
+      function computeFrame(cssW, cssH) { const W = Math.max(1, parseInt(outW.value) || 1), H = Math.max(1, parseInt(outH.value) || 1); const ar = W / H; let fw = cssW * .9, fh = fw / ar; if (fh > cssH * .9) { fh = cssH * .9; fw = fh * ar; } const x = (cssW - fw) / 2, y = (cssH - fh) / 2; return { W, H, ar, fw, fh, x, y, Cx: cssW / 2, Cy: cssH / 2 }; }
+      function drawBackgroundCSS(cssW, cssH) { if (bgSel.value !== 'transparent') { ctx.fillStyle = (bgSel.value === 'custom') ? bgColor.value : bgSel.value; ctx.fillRect(0, 0, cssW, cssH); } else { ctx.clearRect(0, 0, cssW, cssH); } }
+
+      // ===== Adjustments =====
+      function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+      function applyAdjustments(data, W, H) { const B = parseInt(brightness.value, 10) || 0; const C = parseInt(contrast.value, 10) || 0; const S = parseInt(saturation.value, 10) || 0; const bo = 255 * (B / 100); const c = C / 100; const cf = (259 * (c * 255 + 255)) / (255 * (259 - c * 255)); const s = S / 100; for (let i = 0; i < data.length; i += 4) { let r = data[i], g = data[i + 1], b = data[i + 2]; r = clamp(cf * (r - 128) + 128 + bo, 0, 255); g = clamp(cf * (g - 128) + 128 + bo, 0, 255); b = clamp(cf * (b - 128) + 128 + bo, 0, 255); const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b; r = clamp(lum + (r - lum) * (1 + s), 0, 255); g = clamp(lum + (g - lum) * (1 + s), 0, 255); b = clamp(lum + (b - lum) * (1 + s), 0, 255); data[i] = r; data[i + 1] = g; data[i + 2] = b; } }
+
+      // ===== Palettes =====
+      function getPalette() { const mode = colorMode.value; if (mode === 'bw') return [[0, 0, 0], [255, 255, 255]]; if (mode === 'bwr') return [[0, 0, 0], [255, 255, 255], [255, 0, 0]]; return null; }
+      function nearestColor(r, g, b, pal) { let best = 0, bd = 1e9; for (let i = 0; i < pal.length; i++) { const pr = pal[i][0], pg = pal[i][1], pb = pal[i][2]; const dr = r - pr, dg = g - pg, db = b - pb; const d = dr * dr + dg * dg + db * db; if (d < bd) { bd = d; best = i; } } return pal[best]; }
+
+      // ===== Dither: Bayer 16x16 =====
+      function genBayer(n) { if (n === 2) return [[0, 2], [3, 1]]; const half = genBayer(n / 2); const out = Array.from({ length: n }, () => Array(n).fill(0)); for (let y = 0; y < n / 2; y++) for (let x = 0; x < n / 2; x++) { const v = half[y][x] * 4; out[y][x] = v + 0; out[y][x + n / 2] = v + 2; out[y + n / 2][x] = v + 3; out[y + n / 2][x + n / 2] = v + 1; } return out; }
+      function ensureBayer() { if (!state.bayer16) state.bayer16 = genBayer(16); }
+      function ditherBayer(data, W, H, pal) { ensureBayer(); const N = 16, max = (N * N - 1); for (let y = 0, i = 0; y < H; y++) { for (let x = 0; x < W; x++, i += 4) { const a = data[i + 3]; if (a === 0) continue; const th = (state.bayer16[y % N][x % N] / max - .5) * 64; const rr = clamp(data[i] + th, 0, 255), gg = clamp(data[i + 1] + th, 0, 255), bb = clamp(data[i + 2] + th, 0, 255); const q = nearestColor(rr, gg, bb, pal); data[i] = q[0]; data[i + 1] = q[1]; data[i + 2] = q[2]; } } }
+
+      // ===== Dither: Floyd–Steinberg =====
+      function ditherFS(data, W, H, pal) { const buf = new Float32Array(data.length); for (let k = 0; k < data.length; k++) buf[k] = data[k]; function set(i, r, g, b) { data[i] = r; data[i + 1] = g; data[i + 2] = b; } for (let y = 0; y < H; y++) { for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; const a = buf[i + 3]; if (a === 0) continue; const oldR = buf[i], oldG = buf[i + 1], oldB = buf[i + 2]; const n = nearestColor(oldR, oldG, oldB, pal); set(i, n[0], n[1], n[2]); const er = oldR - n[0], eg = oldG - n[1], eb = oldB - n[2]; function add(ix, iy, fr) { if (ix < 0 || ix >= W || iy < 0 || iy >= H) return; const j = (iy * W + ix) * 4; buf[j] += er * fr; buf[j + 1] += eg * fr; buf[j + 2] += eb * fr; } add(x + 1, y, 7 / 16); add(x - 1, y + 1, 3 / 16); add(x, y + 1, 5 / 16); add(x + 1, y + 1, 1 / 16); } } }
+
+      // ===== Dither: Atkinson =====
+      function ditherAtkinson(data, W, H, pal) { const buf = new Float32Array(data.length); for (let k = 0; k < data.length; k++) buf[k] = data[k]; function set(i, r, g, b) { data[i] = r; data[i + 1] = g; data[i + 2] = b; } for (let y = 0; y < H; y++) { for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; const a = buf[i + 3]; if (a === 0) continue; const oldR = buf[i], oldG = buf[i + 1], oldB = buf[i + 2]; const n = nearestColor(oldR, oldG, oldB, pal); set(i, n[0], n[1], n[2]); const er = oldR - n[0], eg = oldG - n[1], eb = oldB - n[2]; function add(ix, iy) { if (ix < 0 || ix >= W || iy < 0 || iy >= H) return; const j = (iy * W + ix) * 4; buf[j] += er / 8; buf[j + 1] += eg / 8; buf[j + 2] += eb / 8; } add(x + 1, y); add(x + 2, y); add(x - 1, y + 1); add(x, y + 1); add(x + 1, y + 1); add(x, y + 2); } } }
+
+      // ===== Export pipeline =====
+      function renderExportCanvas() { if (!state.img) return null; const W = Math.max(1, parseInt(outW.value) || 1), H = Math.max(1, parseInt(outH.value) || 1); if (!state.expCanvas) state.expCanvas = document.createElement('canvas'); const off = state.expCanvas; off.width = W; off.height = H; const octx = off.getContext('2d'); if (bgSel.value !== 'transparent') { octx.fillStyle = (bgSel.value === 'custom') ? bgColor.value : bgSel.value; octx.fillRect(0, 0, W, H); } else { octx.clearRect(0, 0, W, H); } const { cssW, cssH } = getCssSize(canvas); const frame = computeFrame(cssW, cssH); const sx = W / frame.fw, sy = H / frame.fh; octx.setTransform(sx, 0, 0, sy, -sx * frame.x, -sy * frame.y); octx.save(); octx.translate(frame.Cx + state.tx, frame.Cy + state.ty); octx.rotate(state.rotation); octx.scale(state.scale, state.scale); octx.drawImage(state.img, -state.imgW / 2, -state.imgH / 2); octx.restore(); const imgData = octx.getImageData(0, 0, W, H), data = imgData.data; applyAdjustments(data, W, H); const pal = getPalette(); const method = ditherSel.value; if (pal) { if (method === 'fs') ditherFS(data, W, H, pal); else if (method === 'atkinson') ditherAtkinson(data, W, H, pal); else if (method === 'bayer16') ditherBayer(data, W, H, pal); else { for (let i = 0; i < data.length; i += 4) { const a = data[i + 3]; if (a === 0) continue; const q = nearestColor(data[i], data[i + 1], data[i + 2], pal); data[i] = q[0]; data[i + 1] = q[1]; data[i + 2] = q[2]; } } } octx.putImageData(imgData, 0, 0); return off; }
+
+      // ===== Main draw =====
+      function draw() {
+        const { dpr, cssW, cssH } = setCanvasSizeToCSS(canvas); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); drawBackgroundCSS(cssW, cssH); outInfo.textContent = `${outW.value}×${outH.value}px`; exportBtn.disabled = !state.img; if (typeof updateSerialButtons === 'function') updateSerialButtons(); if (!state.img) return; const { fw, fh, x, y, Cx, Cy } = computeFrame(cssW, cssH);
+        if (state.view === 'source') {
+          ctx.save(); ctx.translate(Cx + state.tx, Cy + state.ty); ctx.rotate(state.rotation); ctx.scale(state.scale, state.scale); ctx.drawImage(state.img, -state.imgW / 2, -state.imgH / 2); ctx.restore();
+          ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.65)'; ctx.lineWidth = 1; ctx.setLineDash([6, 6]); ctx.strokeRect(x, y, fw, fh); ctx.setLineDash([]); ctx.strokeStyle = 'rgba(255,255,255,0.3)'; for (let i = 1; i <= 2; i++) { const gx = x + (fw / 3) * i, gy = y + (fh / 3) * i; ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx, y + fh); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x + fw, gy); ctx.stroke(); } ctx.restore();
+        } else {
+          const off = renderExportCanvas(); if (off) { ctx.imageSmoothingEnabled = false; ctx.mozImageSmoothingEnabled = false; ctx.webkitImageSmoothingEnabled = false; ctx.msImageSmoothingEnabled = false; let s = Math.min(cssW / off.width, cssH / off.height); if (s >= 1) s = Math.max(1, Math.floor(s)); const dx = Math.floor((cssW - off.width * s) / 2); const dy = Math.floor((cssH - off.height * s) / 2); ctx.save(); ctx.translate(dx, dy); ctx.scale(s, s); ctx.drawImage(off, 0, 0); ctx.restore(); const wpx = Math.floor(off.width * s), hpx = Math.floor(off.height * s); ctx.save(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.strokeRect(Math.floor(dx) + 0.5, Math.floor(dy) + 0.5, wpx - 1, hpx - 1); ctx.restore(); }
+        }
+      }
+
+      function loadFile(f) { const url = URL.createObjectURL(f); const img = new Image(); img.onload = () => { state.img = img; state.imgW = img.naturalWidth; state.imgH = img.naturalHeight; meta.textContent = `Source: ${state.imgW}×${state.imgH}px`; state.tx = 0; state.ty = 0; state.scale = 1; state.rotation = 0; zoom.value = 100; zoomLabel.textContent = '100%'; exportBtn.disabled = false; draw(); URL.revokeObjectURL(url); }; img.onerror = () => { alert('Failed to load image'); URL.revokeObjectURL(url); }; img.src = url; }
+
+      // Controls
+      fileInput.addEventListener('change', e => { if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]); });
+      zoom.addEventListener('input', () => { state.scale = Math.max(0.01, parseInt(zoom.value, 10) / 100); zoomLabel.textContent = `${zoom.value}%`; draw(); });
+      rotation.addEventListener('input', () => { state.rotation = parseInt(rotation.value, 10) * Math.PI / 180; rotLabel.textContent = `${rotation.value}°`; draw(); });
+      function normalizeAngle(rad) { rad = ((rad + Math.PI) % (2 * Math.PI)); if (rad < 0) rad += 2 * Math.PI; return rad - Math.PI; }
+      rotLeft?.addEventListener('click', () => { state.rotation = normalizeAngle(state.rotation - Math.PI / 2); rotation.value = Math.round(state.rotation * 180 / Math.PI); rotLabel.textContent = `${rotation.value}°`; draw(); });
+      rotRight?.addEventListener('click', () => { state.rotation = normalizeAngle(state.rotation + Math.PI / 2); rotation.value = Math.round(state.rotation * 180 / Math.PI); rotLabel.textContent = `${rotation.value}°`; draw(); });
+
+      ;[outW, outH].forEach(el => el.addEventListener('input', draw));
+      // custom preset list
+      preset296.addEventListener('click', () => { outW.value = 296; outH.value = 128; draw(); });
+      preset648.addEventListener('click', () => { outW.value = 648; outH.value = 480; draw(); });
+
+
+      fitBoxBtn.addEventListener('click', () => { if (!state.img) return; const { cssW, cssH } = getCssSize(canvas); const { fw, fh } = computeFrame(cssW, cssH); const sX = fw / state.imgW, sY = fh / state.imgH; state.scale = Math.max(sX, sY); state.tx = 0; state.ty = 0; zoom.value = Math.round(state.scale * 100); zoomLabel.textContent = `${zoom.value}%`; draw(); });
+
+      function updateBgVisibility() { bgColor.style.display = (bgSel.value === 'custom') ? 'block' : 'none'; }
+      bgSel.addEventListener('change', () => { updateBgVisibility(); draw(); }); bgColor.addEventListener('input', draw); updateBgVisibility();
+
+      viewSourceBtn.addEventListener('click', () => { state.view = 'source'; viewSourceBtn.classList.add('active'); viewOutputBtn.classList.remove('active'); draw(); });
+      viewOutputBtn.addEventListener('click', () => { state.view = 'output'; viewOutputBtn.classList.add('active'); viewSourceBtn.classList.remove('active'); draw(); });
+
+      // Effects + Dither UI
+      function updateEffectLabels() { bVal.textContent = brightness.value; cVal.textContent = contrast.value; sVal.textContent = saturation.value; }
+      ;[brightness, contrast, saturation].forEach(el => el.addEventListener('input', () => { updateEffectLabels(); draw(); })); updateEffectLabels();
+      function updateDitherUI() { ditherSel.disabled = (colorMode.value === 'color'); }
+      colorMode.addEventListener('change', () => { updateDitherUI(); draw(); });
+      ditherSel.addEventListener('change', () => { draw(); });
+      updateDitherUI();
+
+      // ===== WebSerial (ESL Blaster) =====
+      let port = null, writer = null, reader = null, serialReady = false;
+      async function connectSerial() { try { if (!('serial' in navigator)) { setSerialStatus('WebSerial not supported. Use Chrome/Edge over HTTPS.'); return; } port = await navigator.serial.requestPort(); await port.open({ baudRate: 57600 }); writer = port.writable.getWriter(); reader = port.readable.getReader(); setSerialStatus('Port opened, probing…'); await writer.write(new TextEncoder().encode('?')); log('Sent "?" to probe ESL Blaster…'); const ok = await readUntil('ESLBlaster', 1200); if (ok) { serialReady = true; setSerialStatus('ESL Blaster connected'); log('[OK] ESL Blaster detected'); } else { setSerialStatus('Device did not identify.'); log('[ERROR] ESL Blaster not detected'); } updateSerialButtons(); } catch (e) { setSerialStatus('Serial error'); log('[ERROR] Serial: ' + e.message); } }
+      async function readUntil(token, timeout = 1500) { if (!reader) return false; let acc = ''; const t0 = Date.now(); while (Date.now() - t0 < timeout) { const { value, done } = await reader.read(); if (done) break; if (value) { acc += new TextDecoder().decode(value); if (acc.includes(token)) return true; } } return false; }
+      async function writeBytes(bytes) { if (!writer) throw new Error('No writer'); await writer.write(new Uint8Array(bytes)); }
+      async function waitForByte(val, timeout = 3000) { if (!reader) return false; const t0 = Date.now(); while (Date.now() - t0 < timeout) { const { value, done } = await reader.read(); if (done) break; if (value && value[0] === val) return true; } return false; }
+      function getPLID(barcode) { const digits = /^\d/.test(barcode[0]) ? barcode : barcode.substring(1); const PLID = [0, 0, 0, 0]; if (digits.length < 16) return PLID; const id_value = parseInt(digits.slice(1, 6)) + (parseInt(digits.slice(6, 11)) << 16); PLID[0] = (id_value >> 8) & 0xFF; PLID[1] = id_value & 0xFF; PLID[2] = (id_value >> 24) & 0xFF; PLID[3] = (id_value >> 16) & 0xFF; return PLID; }
+      function crc16(data) { let result = 0x8408, poly = 0x8408; for (let by of data) { result ^= by; for (let i = 0; i < 8; i++) { if (result & 1) { result >>= 1; result ^= poly; } else result >>= 1; } } return result & 0xFFFF; }
+      function appendWord(arr, v) { arr.push((v >> 8) & 0xFF, v & 0xFF); }
+      function terminateFrame(frame, pp16, repeats) { const crc = crc16(frame); if (pp16) frame.unshift(0x00, 0x00, 0x00, 0x40); frame.push(crc & 0xFF, (crc >> 8) & 0xFF); frame.push(repeats & 0xFF, (repeats >> 8) & 0xFF); }
+      function makeRawFrame(protocol, PLID, cmd) { return [protocol, PLID[3], PLID[2], PLID[1], PLID[0], cmd]; }
+      function makeMCUFrame(PLID, cmd) { return [0x85, PLID[3], PLID[2], PLID[1], PLID[0], 0x34, 0x00, 0x00, 0x00, cmd]; }
+      function makePingFrame(PLID, pp16, repeats) { const fr = makeRawFrame(0x85, PLID, 0x17); fr.push(0x01, 0x00, 0x00, 0x00); for (let i = 0; i < 22; i++) fr.push(0x01); terminateFrame(fr, pp16, repeats); return fr; }
+      function makeRefreshFrame(PLID, pp16) { const fr = makeMCUFrame(PLID, 0x01); for (let i = 0; i < 22; i++) fr.push(0x00); terminateFrame(fr, pp16, 1); return fr; }
+      function recordRun(run_count, bits, compressed) { bits.length = 0; let rc = run_count; while (rc) { bits.unshift(rc & 1); rc >>= 1; } for (let b of bits.slice(1)) compressed.push(0); if (bits.length) compressed.push(...bits); }
+      function classifyPixels(imageData, useRedPass) { const { data, width, height } = imageData; const out = []; for (let y = 0; y < height; y++) { for (let x = 0; x < width; x++) { const idx = (y * width + x) * 4; const r = data[idx], g = data[idx + 1], b = data[idx + 2], a = data[idx + 3]; const isBlk = a > 0 && r < 32 && g < 32 && b < 32; const isRed = a > 0 && r > 223 && g < 48 && b < 48; out.push(useRedPass ? (isRed ? 0 : 1) : (isBlk ? 0 : 1)); } } return out; }
+      function updateSerialButtons() { if (serialSendBtn) serialSendBtn.disabled = !(state.img && serialReady && (serialBarcode?.value || '').trim().length === 17); }
+      serialBarcode?.addEventListener('input', updateSerialButtons);
+      serialConnectBtn?.addEventListener('click', connectSerial);
+      async function sendExportToESL() { try { if (!serialReady) { setSerialStatus('Connect first'); return; } const barcode = (serialBarcode?.value || '').trim(); if (barcode.length !== 17) { setSerialStatus('Barcode must be 17 digits'); return; } const PLID = getPLID(barcode); const off = renderExportCanvas(); if (!off) { setSerialStatus('No export image'); return; } const W = off.width, H = off.height; const octx = off.getContext('2d'); const imageData = octx.getImageData(0, 0, W, H); const color_mode = (colorMode.value === 'bwr') ? 1 : 0; let pixels = classifyPixels(imageData, false); if (color_mode) pixels = pixels.concat(classifyPixels(imageData, true)); const size_raw = pixels.length; let bits = [], compressed = [], run = pixels[0], rc = 1; compressed.push(run); for (let i = 1; i < pixels.length; i++) { if (pixels[i] === run) rc++; else { recordRun(rc, bits, compressed); rc = 1; run = pixels[i]; } } if (rc > 1) recordRun(rc, bits, compressed); const useCompressed = compressed.length < size_raw; const dataBits = useCompressed ? compressed : pixels; const compression_type = useCompressed ? 2 : 0; log(`[INFO] ${useCompressed ? `Compression ratio ${(100 * (1 - compressed.length / size_raw)).toFixed(1)}%` : 'Compression disabled'} (${size_raw} -> ${useCompressed ? compressed.length : size_raw} bits)`); const bytes_per_frame = 20, bits_per_frame = bytes_per_frame * 8; const pad = (bits_per_frame - (dataBits.length % bits_per_frame)) % bits_per_frame; for (let i = 0; i < pad; i++) dataBits.push(0); const frame_count = dataBits.length / bits_per_frame; const frames = []; const pp16 = true; const page = 0, pos_x = 0, pos_y = 0; frames.push(makePingFrame(PLID, pp16, 400)); let fr = makeMCUFrame(PLID, 0x05); appendWord(fr, dataBits.length / 8); fr.push(0x00); fr.push(compression_type); fr.push(page); appendWord(fr, W); appendWord(fr, H); appendWord(fr, pos_x); appendWord(fr, pos_y); appendWord(fr, 0x0000); fr.push(color_mode ? 0x88 : 0x80); appendWord(fr, 0x0000); fr.push(0x00, 0x00, 0x00, 0x00); terminateFrame(fr, pp16, 1); frames.push(fr); let k = 0; for (let n = 0; n < frame_count; n++) { let d = makeMCUFrame(PLID, 0x20); appendWord(d, n); for (let by = 0; by < bytes_per_frame; by++) { let v = 0; for (let bi = 0; bi < 8; bi++) { v = (v << 1) | dataBits[k++]; } d.push(v); } terminateFrame(d, pp16, 1); frames.push(d); } frames.push(makeRefreshFrame(PLID, pp16)); log(`[INFO] Transmitting ${frames.length} frames…`); for (let idx = 0; idx < frames.length; idx++) { const f = frames[idx]; const data_size = f.length - 2; let repeats = f[f.length - 2] + (f[f.length - 1] << 8); if (pp16 && repeats > 32767) repeats = 32767; if (pp16) repeats |= 0x8000; const packet = [76, data_size, 10, repeats & 0xFF, (repeats >> 8) & 0xFF, ...f.slice(0, data_size), 84]; await writeBytes(packet); log(`[TX] Frame ${idx + 1}/${frames.length} (${data_size} bytes)`); const ack = await waitForByte(75, 5000); if (!ack) log(`[WARN] No ACK after frame ${idx + 1}`); } log('[DONE] All frames transmitted.'); } catch (e) { log('[ERROR] ' + e.message); } }
+      serialSendBtn?.addEventListener('click', sendExportToESL);
+
+      // Gestures
+      wrap.addEventListener('wheel', (e) => { if (!state.img) return; e.preventDefault(); const cur = parseInt(zoom.value, 10); const next = Math.min(800, Math.max(5, cur + (Math.sign(-e.deltaY)) * (e.shiftKey ? 1 : 5))); zoom.value = String(next); zoom.dispatchEvent(new Event('input')); }, { passive: false });
+      wrap.addEventListener('pointerdown', (e) => { if (!state.img) return; wrap.setPointerCapture(e.pointerId); state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
+      wrap.addEventListener('pointermove', (e) => { if (!state.pointers.has(e.pointerId)) return; state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); const pts = [...state.pointers.values()]; if (pts.length === 1) { state.tx += e.movementX || 0; state.ty += e.movementY || 0; draw(); } if (pts.length === 2) { const [a, b] = pts; const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; const dx = b.x - a.x, dy = b.y - a.y; const dist = Math.hypot(dx, dy); if (state.lastGestureDist) { const scaleDelta = dist / state.lastGestureDist; const cur = parseInt(zoom.value, 10); let next = Math.round(cur * scaleDelta); next = Math.min(800, Math.max(5, next)); zoom.value = String(next); const mdx = mid.x - (state.lastGestureMid ? state.lastGestureMid.x : mid.x); const mdy = mid.y - (state.lastGestureMid ? state.lastGestureMid.y : mid.y); state.tx += mdx; state.ty += mdy; zoom.dispatchEvent(new Event('input')); } state.lastGestureDist = dist; state.lastGestureMid = mid; } });
+      function endPtr(e) { state.pointers.delete(e.pointerId); if (state.pointers.size < 2) { state.lastGestureDist = null; state.lastGestureMid = null; } }
+      wrap.addEventListener('pointerup', endPtr); wrap.addEventListener('pointercancel', endPtr); wrap.addEventListener('pointerleave', endPtr);
+
+      // Export exact frame
+      exportBtn.addEventListener('click', () => { if (!state.img) return; const off = renderExportCanvas(); if (!off) return; const a = document.createElement('a'); a.download = `output_${off.width}x${off.height}.png`; a.href = off.toDataURL('image/png', 1.0); a.click(); });
+
+      new ResizeObserver(draw).observe(wrap);
+    })();
+  </script>
+</body>
+
+</html>

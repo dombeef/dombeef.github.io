@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="dombeef">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>ESL Reverse Engineering - dombeef</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="./css/portfolio-item.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa|Roboto|Ubuntu" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">dombeef</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="../../index.html">Home</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="../projects.html">Projects
+              <span class="sr-only">(current)</span>
+            </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../../contact/contact.html">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="container">
+
+      <!-- Portfolio Item Heading -->
+      <h1 class="my-4">
+        ESL Reverse Engineering
+      </h1>
+      <div class="text-center">
+          <img class="mx-auto d-block img-fluid shadow-sm bg-white rounded" src="./images/image1.jpg" alt="Pricer ESL tags with custom images.">
+        </div>
+      <!-- Portfolio Item Row -->
+      <div class="row">
+
+
+        <div >
+          <h3 class="my-3">Project Description</h3>
+          <p>What originally started as a bet by a friend has led me into a deep dive on how electronic shelf labels(ESL) work, how to communicate with their specific protocols, and eventually how to get them to display custom images.</p>
+          <p>The first focus was on Pricer ESLs. I found <a href="https://www.furrtek.org/index.php?a=esl&ss=3">Furrtek's</a>  reverse engineering research on this matter, and saw that these digital price tags work over IR. The firmware supports a 16 bit key for "security" reasons, but every tag I've come across has the default key of 0. </p>
+          <p>I tried to create my own flasher with hardware I had laying around(arduino, IR leds, bluetooth transmitter) as per an opensource project called <a href="https://github.com/david4599/PricehaxBT">PricehaxBT</a>. I found the 1.25 MHz communication signal to be a bit too difficult for my hardware to maintain, resulting in failed transmissions on more complicated images that took longer to be transmitted over to the ESL. I even created a custom dithering algorithm to lessen the complexity of the images transmitted(TODO: Add example of custom ordered dithering image), but that was just a stopgap until I'd resolve that issue.</p>
+          <p>The fix was to just purchase known good hardware that works reliably. I found Furrtek created and sold their own USB IR flasher that talks over serial and can reliably transmit at the correct timing to send complex images over. This now lets me control each individual pixel on the E-Ink panel without needing to worry about transmission length or custom dithering.</p>
+          <p>The python script wasn't the simplest to set up and use, especially if I wanted to flash a bunch of tags at once. I converted their python code that handles image conversion and transmission to javascript, and created some decent image generator and transmitter tools that let you scale adjust your image to fit each ESL tag, with the page links listed below. I also am working on a WIP tool that works with other certain ESL tags that communicate over bluetooth, so there's no custom usb dongle required to flash them.</p>
+          <p>I also purchased a Zebra TC-51 to have an android device with a functional barcode scanner that'll make it easier to scan the serial/barcode on these devices. I modified Furrtek's Android app to remove the camera barcode scanner code(which caused the app to crash on my older Android devices anyways) and have used it with a usb adapter to work with their ESL Blaster USB dongle.</p>
+        </div>
+
+      </div>
+      <!-- /.row -->
+
+      <!-- Details -->
+      <h3 class="my-3">Custom web based image generators and transmitter pages</h3>
+      <ul>
+        <li><a href="basic-image-uploader-precir-webserial.html">Basic PrecIR WebSerial Image Uploader(contains a nice way to decode the ESL barcode to show manufacture date and other details)</a> </li>
+        <li><a href="image-generator-precir-webserial.html">Image Generator(Dither and resize tool) and WebSerial Transmitter to ESL Blaster</a> </li>
+        <li><a href="image-generator-oepl-ble.html">Image Generator(Dither and resize tool) and WebBluetooth Transmitter to OEPL firmware based ESL tags</a> </li>
+      </ul>
+
+      <h3 class="my-3">Links</h3>
+      <ul>
+        <li><a href="https://www.furrtek.org/index.php?a=esl&ss=3">Furrtek: Reverse-engineering infrared-based electronic shelf labels</a> </li>
+        <li><a href="https://github.com/david4599/PricehaxBT">PricehaxBT</a> </li>
+        <li><a href="https://atc1441.github.io/ATC_BLE_OEPL_Image_Upload.html">ATC BLE OEPL Image Upload(used to flash firmware/images on compatible ESL tags over bluetooth)</a> </li>
+      </ul>
+
+    </div>
+    <!-- /.container -->
+
+    <!-- Footer -->
+    <footer class="py-5 bg-dark">
+      <div class="container">
+        <p class="m-0 text-center text-white" style="font-family: 'Comfortaa', regular;"> &copy; dombeef 2025</p>
+      </div>
+      <!-- /.container -->
+    </footer>
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./css/jquery-3.3.1.slim.min.js.download" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="./css/popper.min.js.download"></script>
+    <script src="./css/bootstrap.min.js.download"></script>
+
+  </body>
+
+</html>
