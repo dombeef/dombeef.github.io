@@ -1,332 +1,410 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Truchet Clone Config</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <style>
-        body {
-            font-family: -apple-system, sans-serif;
-            background: #f4f4f7;
-            padding: 16px;
-            color: #333;
-            margin: 0;
-        }
-        h2 { margin: 8px 0 12px; }
-        .section {
-            background: #fff;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 14px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-        .section-title {
-            font-weight: 800;
-            font-size: 13px;
-            color: #555;
-            letter-spacing: .2px;
-            text-transform: uppercase;
-            margin: 0 0 10px 0;
-        }
-        .row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            justify-content: space-between;
-        }
-        .left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-        }
-        .current-label {
-            font-weight: 700;
-            font-size: 14px;
-            color: #333;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .swatch {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            flex: 0 0 auto;
-        }
-        .choose-btn {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background: #fff;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            flex: 0 0 auto;
-        }
-        /* Toggle Switch CSS */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 46px;
-            height: 26px;
-            flex: 0 0 auto;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        input:checked + .slider { background-color: #ff5500; }
-        input:checked + .slider:before { transform: translateX(20px); }
+  <title>Truchet Clone Config</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-        button#save {
-            width: 100%;
-            padding: 16px;
-            background: #ff5500;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 8px;
-            margin-bottom: 24px;
-        }
-        canvas#preview {
-            width: 100%;
-            max-width: 220px;
-            aspect-ratio: 1 / 1;
-            display: block;
-            margin: 20px auto;
-            image-rendering: pixelated;
-            border-radius: 50%;
-            box-shadow: 0 0 0 6px #222; /* Bezel look */
-        }
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            z-index: 9999;
-        }
-        .modal-overlay.open { display: flex; }
-        .modal {
-            width: 100%;
-            max-width: 400px;
-            background: #fff;
-            border-radius: 16px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 14px;
-            border-bottom: 1px solid #eee;
-        }
-        .color-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 4px;
-            padding: 12px;
-        }
-        .color-tile {
-            width: 100%;
-            aspect-ratio: 1;
-            border-radius: 4px;
-            cursor: pointer;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-    </style>
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #f4f4f7;
+      padding: 16px;
+      color: #333;
+      margin: 0;
+    }
+
+    h2 {
+      margin: 8px 0 12px;
+    }
+
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: #555;
+      letter-spacing: .2px;
+      text-transform: uppercase;
+      margin: 0 0 10px 0;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .current-label {
+      font-weight: 700;
+      font-size: 14px;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 50vw;
+    }
+
+    .swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      flex: 0 0 auto;
+    }
+
+    .choose-btn {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .choose-btn:active {
+      transform: scale(.97);
+    }
+
+    button#save {
+      width: 100%;
+      padding: 16px;
+      background: #ff5500;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 8px;
+      margin-bottom: 24px;
+    }
+
+    /* Square Preview */
+    canvas#preview {
+      width: 100%;
+      max-width: 300px;
+      aspect-ratio: 1 / 1;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid #e6e6e6;
+      background: #fff;
+      image-rendering: pixelated;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      display: block;
+      margin: 0 auto;
+      touch-action: manipulation;
+      object-fit: contain;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    /* Fixed Modal Pop-up */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      /* Center vertically for better reach */
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 400px;
+      /* Tightened for 8x8 look */
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .modal-title {
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .modal-close {
+      border: 0;
+      background: transparent;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .modal-body {
+      padding: 12px;
+    }
+
+    /* Rigid 8x8 Grid */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      /* Force 8 columns */
+      gap: 4px;
+      /* Smaller gap for small screens */
+    }
+
+    .color-tile {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      box-sizing: border-box;
+    }
+
+    .color-tile.selected {
+      border: 2px solid #000;
+      transform: scale(1.1);
+      z-index: 2;
+    }
+
+    @media (max-width:380px) {
+      body {
+        padding: 12px;
+      }
+
+      .color-grid {
+        gap: 2px;
+      }
+
+      /* Ultra-tight for small screens */
+    }
+  </style>
 </head>
+
 <body>
-    <h2>Truchet Clone Settings</h2>
+  <h2>Truchet Clone Settings</h2>
 
-    <div class="section">
-        <div class="section-title">Face Preview</div>
-        <canvas id="preview"></canvas>
+  <div class="section">
+    <div class="section-title">Face Preview</div>
+    <canvas id="preview"></canvas>
+  </div>
+
+  <div class="section">
+    <div class="row">
+      <div class="left">
+        <div class="swatch" id="swatch-0"></div>
+        <span class="current-label">Black Replacement</span>
+      </div>
+      <button class="choose-btn" type="button" data-open-picker="0">Choose</button>
     </div>
+  </div>
 
-    <div class="section">
-        <div class="section-title">Time Settings</div>
-        <div class="row">
-            <div class="left">
-                <span class="current-label">24-Hour Mode</span>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="is24h-toggle">
-                <span class="slider"></span>
-            </label>
-        </div>
+  <div class="section">
+    <div class="row">
+      <div class="left">
+        <div class="swatch" id="swatch-2"></div>
+        <span class="current-label">Grey Replacement</span>
+      </div>
+      <button class="choose-btn" type="button" data-open-picker="2">Choose</button>
     </div>
+  </div>
 
-    <div class="section">
-        <div class="row">
-            <div class="left">
-                <div class="swatch" id="swatch-0"></div>
-                <span class="current-label">Black Replacement</span>
-            </div>
-            <button class="choose-btn" type="button" data-open-picker="0">Choose</button>
-        </div>
+  <div class="section">
+    <div class="row">
+      <div class="left">
+        <div class="swatch" id="swatch-1"></div>
+        <span class="current-label">White Replacement</span>
+      </div>
+      <button class="choose-btn" type="button" data-open-picker="1">Choose</button>
     </div>
+  </div>
 
-    <div class="section">
-        <div class="row">
-            <div class="left">
-                <div class="swatch" id="swatch-2"></div>
-                <span class="current-label">Grey Replacement</span>
-            </div>
-            <button class="choose-btn" type="button" data-open-picker="2">Choose</button>
-        </div>
+  <button id="save">SAVE SETTINGS</button>
+
+  <div class="modal-overlay" id="pickerOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <div class="modal-header">
+        <div class="modal-title" id="pickerTitle">Choose Color</div>
+        <button class="modal-close" type="button" id="pickerClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="color-grid" id="pickerGrid"></div>
+      </div>
     </div>
+  </div>
 
-    <div class="section">
-        <div class="row">
-            <div class="left">
-                <div class="swatch" id="swatch-1"></div>
-                <span class="current-label">White Replacement</span>
-            </div>
-            <button class="choose-btn" type="button" data-open-picker="1">Choose</button>
-        </div>
-    </div>
+  <script>
+    /* Pebble 64 palette colors */
+    const pebbleColors = [
+      '#000000', '#000055', '#0000AA', '#0000FF', '#005500', '#005555', '#0055AA', '#0055FF',
+      '#550000', '#550055', '#5500AA', '#5500FF', '#555500', '#555555', '#5555AA', '#5555FF',
+      '#AA0000', '#AA0055', '#AA00AA', '#AA00FF', '#AA5500', '#AA5555', '#AA55AA', '#AA55FF',
+      '#FF0000', '#FF0055', '#FF00AA', '#FF00FF', '#FF5500', '#FF5555', '#FF55AA', '#FF55FF',
+      '#00AA00', '#00AA55', '#00AAAA', '#00AAFF', '#00FF00', '#00FF55', '#00FFAA', '#00FFFF',
+      '#55AA00', '#55AA55', '#55AAAA', '#55AAFF', '#55FF00', '#55FF55', '#55FFAA', '#55FFFF',
+      '#AAAA00', '#AAAA55', '#AAAAAA', '#AAAAFF', '#AAFF00', '#AAFF55', '#AAFFAA', '#AAFFFF',
+      '#FFAA00', '#FFAA55', '#FFAAAA', '#FFAAFF', '#FFFF00', '#FFFF55', '#FFFFAA', '#FFFFFF'
+    ];
 
-    <button id="save">SAVE SETTINGS</button>
+    function hexToRgb(hex) {
+      const h = hex.replace('#', '');
+      return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+    }
 
-    <div class="modal-overlay" id="pickerOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="pickerTitle">Choose Color</div>
-                <button style="border:0; background:transparent; font-size:24px; cursor:pointer;" type="button" id="pickerClose">×</button>
-            </div>
-            <div class="color-grid" id="pickerGrid"></div>
-        </div>
-    </div>
+    let selections = { color0: '#000000', color1: '#FFFFFF', color2: '#AAAAAA' };
+    const labels = { 0: 'Black Replacement', 1: 'White Replacement', 2: 'Grey Replacement' };
 
-    <script>
-        const pebbleColors = [
-            '#000000', '#000055', '#0000AA', '#0000FF', '#005500', '#005555', '#0055AA', '#0055FF',
-            '#550000', '#550055', '#5500AA', '#5500FF', '#555500', '#555555', '#5555AA', '#5555FF',
-            '#AA0000', '#AA0055', '#AA00AA', '#AA00FF', '#AA5500', '#AA5555', '#AA55AA', '#AA55FF',
-            '#FF0000', '#FF0055', '#FF00AA', '#FF00FF', '#FF5500', '#FF5555', '#FF55AA', '#FF55FF',
-            '#00AA00', '#00AA55', '#00AAAA', '#00AAFF', '#00FF00', '#00FF55', '#00FFAA', '#00FFFF',
-            '#55AA00', '#55AA55', '#55AAAA', '#55AAFF', '#55FF00', '#55FF55', '#55FFAA', '#55FFFF',
-            '#AAAA00', '#AAAA55', '#AAAAAA', '#AAAAFF', '#AAFF00', '#AAFF55', '#AAFFAA', '#AAFFFF',
-            '#FFAA00', '#FFAA55', '#FFAAAA', '#FFAAFF', '#FFFF00', '#FFFF55', '#FFFFAA', '#FFFFFF'
-        ];
+    const EXAMPLE_PNG_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAACXBIWXMAAAsTAAALEwEAmpwYAAAE72lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDAgMTM3LmRhNGE3ZTUsIDIwMjIvMTEvMjctMDk6MzU6MDMgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIiB4bWxuczpwaG90b3Nob3A9Imh0dHA6Ly9ucy5hZG9iZS5jb20vcGhvdG9zaG9wLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNC4xIChXaW5kb3dzKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjYtMDEtMzFUMTE6MjA6MjUtMDU6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAxLTMxVDExOjIxOjIwLTA1OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDI2LTAxLTMxVDExOjIxOjIwLTA1OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo3NzdlZTdhMi05MTFkLWVmNDktYTViYS04NTI0OGJkZjRhNzEiIHhtcE1NOkRvY3VtZW50SUQ9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";
 
-        let selections = { color0: '#000000', color1: '#FFFFFF', color2: '#AAAAAA', is24h: false };
-        const labels = { 0: 'Black Replacement', 1: 'White Replacement', 2: 'Grey Replacement' };
+    const exampleImg = new Image();
+    exampleImg.src = "data:image/png;base64," + EXAMPLE_PNG_BASE64;
 
-        const EXAMPLE_PNG1 = "data:image/png;base64,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";
-const EXAMPLE_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAACXBIWXMAAAsTAAALEwEAmpwYAAAE72lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDAgMTM3LmRhNGE3ZTUsIDIwMjIvMTEvMjctMDk6MzU6MDMgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIiB4bWxuczpwaG90b3Nob3A9Imh0dHA6Ly9ucy5hZG9iZS5jb20vcGhvdG9zaG9wLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNC4xIChXaW5kb3dzKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjYtMDEtMzFUMTE6MjA6MjUtMDU6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAxLTMxVDExOjIxOjIwLTA1OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDI2LTAxLTMxVDExOjIxOjIwLTA1OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo3NzdlZTdhMi05MTFkLWVmNDktYTViYS04NTI0OGJkZjRhNzEiIHhtcE1NOkRvY3VtZW50SUQ9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";
+    const overlay = document.getElementById('pickerOverlay');
+    const pickerTitle = document.getElementById('pickerTitle');
+    const pickerGrid = document.getElementById('pickerGrid');
+    const closeBtn = document.getElementById('pickerClose');
+    const preview = document.getElementById('preview');
+    const ctx = preview.getContext('2d', { willReadFrequently: true });
 
-        const exampleImg = new Image();
-        const canvas = document.getElementById('preview');
-        const ctx = canvas.getContext('2d');
-        const toggle = document.getElementById('is24h-toggle');
+    const work = document.createElement('canvas');
+    const wctx = work.getContext('2d', { willReadFrequently: true });
 
-        function hexToRgb(hex) {
-            const h = hex.replace('#', '');
-            return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
-        }
+    function openPicker(id) {
+      pickerTitle.textContent = labels[id];
+      const current = selections[`color${id}`];
+      pickerGrid.innerHTML = '';
 
-        function drawPreview() {
-            if (!exampleImg.complete) return;
-            
-            canvas.width = exampleImg.width;
-            canvas.height = exampleImg.height;
-            
-            // Apply Round Mask
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, Math.PI * 2);
-            ctx.clip();
-
-            ctx.drawImage(exampleImg, 0, 0);
-
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imgData.data;
-            const c0 = hexToRgb(selections.color0);
-            const c1 = hexToRgb(selections.color1);
-            const c2 = hexToRgb(selections.color2);
-
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i], g = data[i + 1], b = data[i + 2];
-                // Match grayscale ranges from fallback/PNG asset
-                if (r < 50 && g < 50 && b < 50) { 
-                    data[i] = c0.r; data[i + 1] = c0.g; data[i + 2] = c0.b;
-                } else if (r > 200 && g > 200 && b > 200) { 
-                    data[i] = c1.r; data[i + 1] = c1.g; data[i + 2] = c1.b;
-                } else if (r > 100 && r < 200) { 
-                    data[i] = c2.r; data[i + 1] = c2.g; data[i + 2] = c2.b;
-                }
-            }
-            ctx.putImageData(imgData, 0, 0);
-            ctx.restore();
-        }
-
-        // Picker UI
-        document.querySelectorAll('[data-open-picker]').forEach(btn => {
-            btn.onclick = () => {
-                const id = btn.getAttribute('data-open-picker');
-                document.getElementById('pickerTitle').innerText = labels[id];
-                const grid = document.getElementById('pickerGrid');
-                grid.innerHTML = '';
-                pebbleColors.forEach(color => {
-                    const tile = document.createElement('div');
-                    tile.className = 'color-tile';
-                    tile.style.backgroundColor = color;
-                    tile.onclick = () => {
-                        selections[`color${id}`] = color;
-                        document.getElementById(`swatch-${id}`).style.backgroundColor = color;
-                        document.getElementById('pickerOverlay').classList.remove('open');
-                        drawPreview();
-                    };
-                    grid.appendChild(tile);
-                });
-                document.getElementById('pickerOverlay').classList.add('open');
-            };
-        });
-
-        document.getElementById('pickerClose').onclick = () => document.getElementById('pickerOverlay').classList.remove('open');
-
-        // Setup
-        exampleImg.src = EXAMPLE_PNG;
-        exampleImg.onload = drawPreview;
-        document.getElementById('swatch-0').style.backgroundColor = selections.color0;
-        document.getElementById('swatch-1').style.backgroundColor = selections.color1;
-        document.getElementById('swatch-2').style.backgroundColor = selections.color2;
-
-        toggle.onchange = () => { selections.is24h = toggle.checked; };
-
-        document.getElementById('save').onclick = () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const return_to = urlParams.get('return_to') || 'pebblejs://close#';
-            location.href = return_to + encodeURIComponent(JSON.stringify(selections));
+      /* Maintain exact 8x8 layout */
+      pebbleColors.forEach(color => {
+        const t = document.createElement('div');
+        t.className = 'color-tile';
+        t.style.backgroundColor = color;
+        if (color === current) t.classList.add('selected');
+        t.onclick = () => {
+          selections[`color${id}`] = color;
+          document.getElementById(`swatch-${id}`).style.backgroundColor = color;
+          closePicker();
+          drawPreview();
         };
-    </script>
+        pickerGrid.appendChild(t);
+      });
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePicker() {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('[data-open-picker]').forEach(btn => {
+      btn.addEventListener('click', () => openPicker(parseInt(btn.getAttribute('data-open-picker'), 10)));
+    });
+
+    closeBtn.addEventListener('click', closePicker);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closePicker(); });
+
+    function setCanvasResolution() {
+      const containerWidth = preview.clientWidth;
+      const dpr = window.devicePixelRatio || 1;
+      preview.width = containerWidth * dpr;
+      preview.height = containerWidth * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      return containerWidth;
+    }
+
+    function isNear(r, g, b, rr, gg, bb, tol) {
+      return Math.abs(r - rr) <= tol && Math.abs(g - gg) <= tol && Math.abs(b - bb) <= tol;
+    }
+
+    function drawPreview() {
+      if (!exampleImg.naturalWidth) return;
+      const cssSize = setCanvasResolution();
+      work.width = exampleImg.naturalWidth;
+      work.height = exampleImg.naturalHeight;
+      wctx.drawImage(exampleImg, 0, 0);
+
+      const imgData = wctx.getImageData(0, 0, work.width, work.height);
+      const data = imgData.data;
+      const c0 = hexToRgb(selections.color0);
+      const c1 = hexToRgb(selections.color1);
+      const c2 = hexToRgb(selections.color2);
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        if (isNear(r, g, b, 0, 0, 0, 10)) {
+          data[i] = c0.r; data[i + 1] = c0.g; data[i + 2] = c0.b;
+        } else if (isNear(r, g, b, 255, 255, 255, 10)) {
+          data[i] = c1.r; data[i + 1] = c1.g; data[i + 2] = c1.b;
+        } else if (isNear(r, g, b, 170, 170, 170, 10)) {
+          data[i] = c2.r; data[i + 1] = c2.g; data[i + 2] = c2.b;
+        }
+      }
+      wctx.putImageData(imgData, 0, 0);
+
+      ctx.clearRect(0, 0, cssSize, cssSize);
+      const center = cssSize / 2;
+      const radius = (cssSize / 2) - 10;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(center, center, radius, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(work, center - radius, center - radius, radius * 2, radius * 2);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(center, center, radius + 1, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(0,0,0,0.1)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    document.getElementById('save').onclick = function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const return_to = urlParams.get('return_to') || 'pebblejs://close#';
+      location.href = return_to + encodeURIComponent(JSON.stringify(selections));
+    };
+
+    document.getElementById('swatch-0').style.backgroundColor = selections.color0;
+    document.getElementById('swatch-1').style.backgroundColor = selections.color1;
+    document.getElementById('swatch-2').style.backgroundColor = selections.color2;
+
+    exampleImg.onload = drawPreview;
+    window.addEventListener('resize', drawPreview);
+  </script>
 </body>
+
 </html>
